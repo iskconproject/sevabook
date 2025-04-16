@@ -6,7 +6,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { MoonIcon, SunIcon, LanguagesIcon, LogOutIcon, UserIcon, SettingsIcon } from 'lucide-react';
+import { useSidebar } from '@/contexts/SidebarContext';
+import { MoonIcon, SunIcon, LanguagesIcon, LogOutIcon, UserIcon, SettingsIcon, MenuIcon, ChevronLeftIcon } from 'lucide-react';
 
 export function Header() {
   const { t } = useTranslation();
@@ -14,15 +15,29 @@ export function Header() {
   const { language, setLanguage, languages } = useLanguage();
   const { user, signOut } = useAuth();
 
+  const { collapsed, toggleSidebar } = useSidebar();
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between mx-auto">
         <div className="flex items-center gap-2">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-primary">{t('app.name')}</span>
-          </Link>
+          {user ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSidebar}
+              className="mr-2"
+            >
+              {collapsed ? <MenuIcon className="h-5 w-5" /> : <ChevronLeftIcon className="h-5 w-5" />}
+              <span className="sr-only">Toggle sidebar</span>
+            </Button>
+          ) : (
+            <Link to="/" className="flex items-center gap-2">
+              <span className="text-2xl font-bold text-primary">{t('app.name')}</span>
+            </Link>
+          )}
         </div>
-        
+
         <div className="flex items-center gap-4">
           {/* Theme Toggle */}
           <DropdownMenu>
@@ -52,7 +67,7 @@ export function Header() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          
+
           {/* Language Selector */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -64,7 +79,7 @@ export function Header() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{t('settings.language')}</DropdownMenuLabel>
               {languages.map((lang) => (
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   key={lang.code}
                   onClick={() => setLanguage(lang.code)}
                   className={language === lang.code ? 'bg-accent text-accent-foreground' : ''}
@@ -74,7 +89,7 @@ export function Header() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          
+
           {/* User Menu */}
           {user ? (
             <DropdownMenu>

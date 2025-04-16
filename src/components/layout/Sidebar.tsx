@@ -2,45 +2,67 @@ import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { 
-  LayoutDashboardIcon, 
-  PackageIcon, 
-  ShoppingCartIcon, 
-  BarChartIcon, 
-  SettingsIcon, 
-  UsersIcon, 
-  BarcodeIcon 
+import {
+  LayoutDashboardIcon,
+  PackageIcon,
+  ShoppingCartIcon,
+  BarChartIcon,
+  SettingsIcon,
+  UsersIcon,
+  BarcodeIcon
 } from 'lucide-react';
+import { useSidebar } from '@/contexts/SidebarContext';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface SidebarItemProps {
   icon: React.ReactNode;
   label: string;
   href: string;
   active?: boolean;
+  collapsed?: boolean;
 }
 
-function SidebarItem({ icon, label, href, active }: SidebarItemProps) {
-  return (
+function SidebarItem({ icon, label, href, active, collapsed }: SidebarItemProps) {
+  const content = (
     <Button
       asChild
       variant="ghost"
       className={cn(
         "w-full justify-start gap-2 px-2",
-        active && "bg-sidebar-accent text-sidebar-accent-foreground"
+        active && "bg-sidebar-accent text-sidebar-accent-foreground",
+        collapsed && "justify-center px-0"
       )}
     >
       <Link to={href}>
         {icon}
-        <span>{label}</span>
+        {!collapsed && <span>{label}</span>}
       </Link>
     </Button>
   );
+
+  if (collapsed) {
+    return (
+      <TooltipProvider>
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger asChild>
+            {content}
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            <p>{label}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+
+  return content;
 }
 
 export function Sidebar() {
   const { t } = useTranslation();
   const location = useLocation();
   const pathname = location.pathname;
+  const { collapsed } = useSidebar();
 
   const routes = [
     {
@@ -81,13 +103,20 @@ export function Sidebar() {
   ];
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r bg-sidebar text-sidebar-foreground lg:flex">
-      <div className="flex h-16 items-center border-b border-sidebar-border px-6">
-        <Link to="/" className="flex items-center gap-2">
-          <span className="text-2xl font-bold text-sidebar-primary">{t('app.name')}</span>
-        </Link>
+    <aside
+      className={cn(
+        "h-screen flex-col border-r bg-sidebar text-sidebar-foreground transition-all duration-300",
+        collapsed ? "w-16" : "w-64"
+      )}
+    >
+      <div className="flex h-16 items-center justify-center border-b border-sidebar-border px-4">
+        {!collapsed && (
+          <Link to="/" className="flex items-center gap-2">
+            <span className="text-2xl font-bold text-sidebar-primary">{t('app.name')}</span>
+          </Link>
+        )}
       </div>
-      <nav className="flex-1 space-y-1 p-4">
+      <nav className={cn("flex-1 space-y-1", collapsed ? "p-2" : "p-4")}>
         {routes.map((route) => (
           <SidebarItem
             key={route.href}
@@ -95,14 +124,17 @@ export function Sidebar() {
             label={route.label}
             href={route.href}
             active={pathname === route.href}
+            collapsed={collapsed}
           />
         ))}
       </nav>
-      <div className="border-t border-sidebar-border p-4">
-        <div className="text-xs text-sidebar-foreground/70">
-          <p>{t('app.name')} &copy; {new Date().getFullYear()}</p>
+      {!collapsed && (
+        <div className="border-t border-sidebar-border p-4">
+          <div className="text-xs text-sidebar-foreground/70">
+            <p>{t('app.name')} &copy; {new Date().getFullYear()}</p>
+          </div>
         </div>
-      </div>
+      )}
     </aside>
   );
 }

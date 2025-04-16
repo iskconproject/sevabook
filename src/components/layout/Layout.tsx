@@ -8,14 +8,16 @@ export function Layout() {
   const { user } = useAuth();
 
   return (
-    <div className="relative min-h-screen">
-      <Header />
+    <div className="relative min-h-screen flex">
       {user && <Sidebar />}
-      <main className={`min-h-[calc(100vh-4rem)] ${user ? 'lg:pl-64' : ''}`}>
-        <div className="container mx-auto py-6 px-6">
-          <Outlet />
-        </div>
-      </main>
+      <div className="flex-1 flex flex-col">
+        <Header />
+        <main className="flex-1">
+          <div className="container mx-auto py-6 px-6">
+            <Outlet />
+          </div>
+        </main>
+      </div>
       <Toaster position="top-right" richColors />
     </div>
   );
