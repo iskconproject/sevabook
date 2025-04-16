@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { MoonIcon, SunIcon, LanguagesIcon, SaveIcon, RefreshCwIcon } from 'lucide-react';
+import { MoonIcon, SunIcon, LanguagesIcon, SaveIcon, RefreshCwIcon, DownloadIcon } from 'lucide-react';
 
 export function SettingsPage() {
   const { t } = useTranslation();

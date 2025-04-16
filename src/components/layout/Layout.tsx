@@ -12,7 +12,7 @@ export function Layout() {
       <Header />
       {user && <Sidebar />}
       <main className={`min-h-[calc(100vh-4rem)] ${user ? 'lg:pl-64' : ''}`}>
-        <div className="container py-6">
+        <div className="container mx-auto py-6 px-6">
           <Outlet />
         </div>
       </main>
