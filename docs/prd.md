@@ -51,6 +51,7 @@ The ISKCON Temple Book Stall currently manages book and spiritual item inventory
 - As a volunteer, I want to quickly record a book sale or donation with quantity, so I can keep stock accurate during festivals.
 - As an admin, I want to see which items are low in stock, so I can reorder before they run out.
 - As an admin, I want to add a new item to the inventory with details like name, category, price, language variants, and initial stock, so that it's available for sale or distribution.
+- As an admin, I want to take a photo of an item and have AI recognize and pre-fill inventory details, so I can add new items more quickly and accurately.
 - As an admin, I want to edit the details of an existing item (e.g., stock quantity, price, description), so I can keep the inventory accurate and up to date.
 - As a volunteer, I want to quickly adjust stock quantities during stock reconciliation, so I can fix any discrepancies found during physical audits.
 
@@ -87,6 +88,7 @@ The ISKCON Temple Book Stall currently manages book and spiritual item inventory
 - Add/edit/delete items with fields like name, price (in ₹), stock, category, language variant, description.
 - Support for language variants of the same item (e.g., Bhagavad Gita in English, Bengali, Hindi).
 - Generate unique barcodes for each inventory item.
+- AI-powered inventory addition using image recognition.
 - Auto-update stock levels on transactions.
 - Filter and search items by name, category, language, price range, and stock level.
 - Low stock alerts and notifications.
@@ -124,6 +126,7 @@ The ISKCON Temple Book Stall currently manages book and spiritual item inventory
 
 ### Non-Functional Requirements
 
+#### System Requirements
 - Mobile-responsive design optimized for tablets and smartphones
 - Fast loading even on slow networks
 - Backup-ready PostgreSQL database via Supabase
@@ -136,6 +139,14 @@ The ISKCON Temple Book Stall currently manages book and spiritual item inventory
 - Secure data handling and privacy compliance
 - Offline transaction capability with sync when connection is restored
 - Regular automated backups
+
+#### AI Requirements
+- Response time for image recognition under 3 seconds
+- Minimum 85% accuracy for common inventory items
+- Graceful degradation when AI services are unavailable
+- Privacy-preserving image processing (no permanent storage of images)
+- Transparent confidence scores for AI predictions
+- Ability to function without AI features when offline
 
 ---
 
@@ -268,6 +279,39 @@ The ISKCON Temple Book Stall currently manages book and spiritual item inventory
 
 ---
 
+## AI Integration
+
+### Image Recognition for Inventory Management
+
+#### Core Functionality
+- Integrate with AI vision models (Google Gemini 2.0 or equivalent) for image recognition
+- Allow users to take photos of inventory items using device camera
+- Automatically identify and extract product information from images
+- Pre-populate inventory form fields based on AI analysis
+- Support for recognizing book covers, packaging, and product labels
+
+#### User Flow
+1. User selects "Add Item via Image" option
+2. Camera interface opens for capturing product image
+3. AI processes the image and identifies the product
+4. System pre-fills inventory form with recognized details
+5. User reviews, modifies if needed, and confirms the information
+6. Item is added to inventory with appropriate categorization
+
+#### AI Model Integration
+- Implement SDK integration with Google Gemini 2.0 or similar AI models
+- Create abstraction layer for AI services to allow swapping providers
+- Implement fallback to manual entry when AI confidence is low
+- Cache common items for faster recognition of frequently stocked products
+
+#### Training and Improvement
+- Allow feedback on AI recognition accuracy to improve future results
+- Periodically update AI models to improve recognition capabilities
+- Build specialized recognition for spiritual items and books common in ISKCON stores
+- Support for recognizing text in multiple languages (English, Bengali, Hindi)
+
+---
+
 ## Backend Architecture
 
 ### Supabase Integration
@@ -384,6 +428,7 @@ The ISKCON Temple Book Stall currently manages book and spiritual item inventory
 - Interface-based design for swappable components
 - Service locator for dependency management
 - Repository pattern for data access abstraction
+- AI service abstraction for vision model integration
 
 #### Deployment
 - Vercel for frontend hosting and serverless functions
@@ -426,3 +471,5 @@ The ISKCON Temple Book Stall currently manages book and spiritual item inventory
 - Integration with accounting software
 - Bulk barcode printing and inventory management tools
 - Migration to different backend service if needed
+- Enhanced AI capabilities for inventory management and sales recommendations
+- Integration with more advanced AI models as they become available
