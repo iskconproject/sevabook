@@ -6,7 +6,6 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -33,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Subscribe to auth changes
     const { data: authListener } = db.auth.onAuthStateChange(
-      async (event, session) => {
+      async (_event: any, session: any) => {
         if (session?.user) {
           setUser(session.user);
         } else {
@@ -57,14 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signUp = async (email: string, password: string) => {
-    try {
-      const { error } = await db.auth.signUp(email, password);
-      return { error };
-    } catch (error) {
-      return { error };
-    }
-  };
+
 
   const signOut = async () => {
     await db.auth.signOut();
@@ -74,7 +66,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     loading,
     signIn,
-    signUp,
     signOut,
   };
 

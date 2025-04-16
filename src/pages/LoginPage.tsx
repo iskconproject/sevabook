@@ -9,7 +9,7 @@ import { EyeIcon, EyeOffIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -118,11 +118,7 @@ export function LoginPage() {
             </form>
           </Form>
         </CardContent>
-        <CardFooter className="flex justify-center">
-          <Button variant="link" onClick={() => navigate('/signup')}>
-            {t('auth.signUp')}
-          </Button>
-        </CardFooter>
+
       </Card>
     </div>
   );

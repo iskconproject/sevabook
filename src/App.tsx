@@ -6,7 +6,6 @@ import { SidebarProvider } from './contexts/SidebarContext';
 import { Layout } from './components/layout/Layout';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { LoginPage } from './pages/LoginPage';
-import { SignupPage } from './pages/SignupPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { InventoryPage } from './pages/InventoryPage';
 import { POSPage } from './pages/POSPage';
@@ -29,7 +28,6 @@ function App() {
                 <Route path="/" element={<Layout />}>
                   {/* Public routes */}
                   <Route path="login" element={<LoginPage />} />
-                  <Route path="signup" element={<SignupPage />} />
 
                   {/* Protected routes */}
                   <Route path="/" element={
