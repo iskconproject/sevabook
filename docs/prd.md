@@ -1,6 +1,6 @@
 # Product Requirements Document
 
-**Product**: ISKCON Temple Book Stall Inventory & POS System
+**Product**: SevaBook - ISKCON Temple Book Stall Inventory & POS System
 **Author**: Arindam Dawn
 **Stakeholders**: Temple President, Book Stall Seva Coordinator, Volunteers
 **Last Updated**: 2025-04-13
@@ -126,7 +126,9 @@ The ISKCON Temple Book Stall currently manages book and spiritual item inventory
 
 - Mobile-responsive design optimized for tablets and smartphones
 - Fast loading even on slow networks
-- Backup-ready PostgreSQL database
+- Backup-ready PostgreSQL database via Supabase
+- Loosely coupled architecture with Supabase for data storage and authentication
+- Database abstraction layer to allow swapping backend services if required
 - Auditable transaction logs
 - Deployed on Vercel or equivalent platform
 - Multi-language support (English, Bengali, Hindi) for all user interfaces
@@ -139,7 +141,6 @@ The ISKCON Temple Book Stall currently manages book and spiritual item inventory
 
 ## Non-Goals
 
-- No direct payment gateway integration (can be added in Phase 2)
 - No complex accounting features beyond basic sales tracking
 - No customer relationship management (CRM) features
 - No integration with external ERP systems
@@ -165,7 +166,7 @@ The ISKCON Temple Book Stall currently manages book and spiritual item inventory
 
 #### Barcode Generation
 - System will generate unique barcodes for each inventory item
-- Support for standard barcode formats: EAN-13, Code 128
+- Support for standard barcode formats: EAN-13, Code 128, QR codes
 - Each book variant (different language of same title) will have a unique barcode
 - Barcodes will encode item ID and can be linked to full product information in database
 
@@ -239,6 +240,7 @@ The ISKCON Temple Book Stall currently manages book and spiritual item inventory
 #### Supported Payment Types
 - Cash
 - UPI (PhonePe, Google Pay, Paytm, etc.)
+- Google Pay API integration for digital payments
 - Credit/Debit Card
 - Other (configurable by admin)
 
@@ -263,6 +265,56 @@ The ISKCON Temple Book Stall currently manages book and spiritual item inventory
 - Support for thermal receipt printers
 - Optional cash drawer integration
 - Responsive design for various screen sizes
+
+---
+
+## Backend Architecture
+
+### Supabase Integration
+
+#### Database Architecture
+- Utilize Supabase as the primary backend service for data storage and authentication
+- Implement a database abstraction layer to decouple the application from Supabase
+- Design database schema to support all inventory, sales, and user management requirements
+- Utilize Supabase Row Level Security (RLS) for data access control
+
+#### Authentication & Authorization
+- Leverage Supabase Auth for user authentication
+- Implement role-based access control using Supabase policies
+- Support email/password and social authentication methods
+- Secure API endpoints with proper authentication checks
+
+#### Data Access Layer
+- Create a repository pattern to abstract database operations
+- Implement service interfaces that can be implemented for different backend providers
+- Use dependency injection to allow swapping backend services
+- Maintain clear separation between data access and business logic
+
+#### Offline Support
+- Implement local storage for offline data caching
+- Design synchronization mechanisms for offline-to-online data transfer
+- Handle conflict resolution for concurrent updates
+
+### Payment Integration
+
+#### Google Pay API Integration
+- Integrate with Google Pay API for digital payment processing
+- Support one-time payments for sales transactions
+- Implement proper error handling and transaction verification
+- Provide fallback payment options when Google Pay is unavailable
+
+#### Payment Processing Flow
+1. Initialize Google Pay API client during application startup
+2. Present Google Pay as a payment option during checkout
+3. Generate payment request with transaction details
+4. Process payment response and update transaction status
+5. Provide receipt after successful payment
+
+#### Security Considerations
+- Implement server-side verification of payment transactions
+- Secure storage of payment-related information
+- Comply with payment industry security standards
+- Regular security audits of payment processing code
 
 ---
 
@@ -310,10 +362,61 @@ The ISKCON Temple Book Stall currently manages book and spiritual item inventory
 
 ---
 
+## Technical Architecture
+
+### Application Architecture
+
+#### Frontend
+- React with TypeScript for type safety
+- Vite for fast development and optimized builds
+- Tailwind CSS for responsive UI components
+- State management with React Context API and hooks
+- Component-based architecture with reusable UI elements
+
+#### Backend
+- Supabase for database, authentication, and storage
+- PostgreSQL database with proper indexing and optimization
+- RESTful API endpoints for data access
+- Serverless functions for business logic when needed
+
+#### Integration Layer
+- Adapter pattern for external service integration
+- Interface-based design for swappable components
+- Service locator for dependency management
+- Repository pattern for data access abstraction
+
+#### Deployment
+- Vercel for frontend hosting and serverless functions
+- Supabase for backend services
+- CI/CD pipeline for automated testing and deployment
+- Environment-based configuration management
+
+### System Design Principles
+
+#### Loose Coupling
+- Clear separation between UI, business logic, and data access
+- Interface-based design for all external service integrations
+- Dependency injection for service management
+- Event-driven communication between components when appropriate
+
+#### Scalability
+- Horizontal scaling through stateless design
+- Efficient database queries with proper indexing
+- Caching strategies for frequently accessed data
+- Asynchronous processing for non-critical operations
+
+#### Maintainability
+- Consistent coding standards and patterns
+- Comprehensive documentation
+- Automated testing at multiple levels
+- Clear module boundaries and responsibilities
+
+---
+
 ## Future Work
 
 - PWA with enhanced offline support for rural areas or low-connectivity festivals
-- Integration with payment gateways for digital payments
+- Integration with additional payment gateways
 - Advanced inventory analytics and forecasting
 - Customer loyalty program and membership tracking
 - Mobile app version with enhanced features
@@ -322,3 +425,4 @@ The ISKCON Temple Book Stall currently manages book and spiritual item inventory
 - Advanced receipt customization with promotional messages
 - Integration with accounting software
 - Bulk barcode printing and inventory management tools
+- Migration to different backend service if needed
