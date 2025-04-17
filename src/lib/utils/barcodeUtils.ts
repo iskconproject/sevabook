@@ -1,7 +1,5 @@
 // Utility functions for barcode generation and printing
 
-import { jsPDF } from 'jspdf';
-
 export interface BarcodeItem {
   id: string;
   name: string;
@@ -16,116 +14,168 @@ export interface BarcodeSettings {
   includePrice: boolean;
   includeTitle: boolean;
   includeLanguage: boolean;
+  customHeading?: string;
 }
 
-// Function to generate a PDF with barcodes for printing
-export function generateBarcodePDF(items: BarcodeItem[], settings: BarcodeSettings, quantity: number = 1): jsPDF {
-  // Create a new PDF document
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4'
-  });
+// Sample barcode items for testing
+export const sampleBarcodeItems: BarcodeItem[] = [
+  { id: 'BG-001', name: 'Bhagavad Gita As It Is', price: '250', language: 'english', category: 'books' },
+  { id: 'IN-002', name: 'Incense Sticks (Sandalwood)', price: '50', language: 'none', category: 'incense' },
+  { id: 'DD-003', name: 'Deity Dress (Small)', price: '350', language: 'none', category: 'clothing' }
+];
 
+/**
+ * Generate HTML for printing barcodes
+ */
+function generateBarcodesHtml(items: BarcodeItem[], settings: BarcodeSettings, quantity: number = 1): string {
   // Get dimensions from settings
   const [width, height] = settings.size.split('x').map(Number);
 
-  // Calculate how many barcodes can fit on a page
-  const pageWidth = 210; // A4 width in mm
-  const pageHeight = 297; // A4 height in mm
-  const margin = 10; // Margin in mm
+  // We'll format barcode values directly in the script
 
-  const cols = Math.floor((pageWidth - 2 * margin) / width);
-  const rows = Math.floor((pageHeight - 2 * margin) / height);
-
-  let currentPage = 1;
-  let currentRow = 0;
-  let currentCol = 0;
-
-  // Generate barcodes for each item
-  items.forEach((item) => {
+  // Generate barcode items HTML
+  const barcodeItemsHtml = items.flatMap(item => {
     // Generate multiple copies based on quantity
-    for (let q = 0; q < quantity; q++) {
-      // Calculate position
-      const x = margin + (currentCol * width);
-      const y = margin + (currentRow * height);
+    return Array.from({ length: quantity }, (_, index) => {
+      const itemId = `barcode-${item.id}-${index}`;
 
-      // Add a new page if needed
-      if (currentPage > 1 && currentRow === 0 && currentCol === 0) {
-        doc.addPage();
-      }
+      // Calculate font sizes based on dimensions - increased for better legibility
+      const headingSize = Math.max(width * 0.1, 7) * 1.2;
+      const detailSize = Math.max(width * 0.09, 6);
 
-      // Draw barcode placeholder (in a real app, this would use a barcode library)
-      doc.setDrawColor(0);
-      doc.setFillColor(255, 255, 255);
-      doc.rect(x, y, width, height, 'FD');
+      // Calculate spacing
+      const verticalSpacing = Math.max(1, height * 0.02);
 
-      // Draw barcode representation
-      doc.setFillColor(0, 0, 0);
-      const barcodeHeight = height * 0.4;
-      doc.rect(x + width * 0.1, y + height * 0.2, width * 0.8, barcodeHeight, 'F');
+      return `
+        <div class="barcode-item" style="width: ${width}mm; height: ${height}mm; margin: 5mm; display: inline-block; text-align: center; overflow: hidden; padding: ${Math.max(0.5, width * 0.02)}mm;">
+          ${settings.customHeading ? `<div style="font-size: ${headingSize}px; font-weight: bold; margin-bottom: ${verticalSpacing / 2}mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.1;">${settings.customHeading}</div>` : ''}
+          <div style="display: flex; align-items: center; justify-content: center; margin: 0;">
+            <svg id="${itemId}" style="max-width: 100%;"></svg>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: ${detailSize}px; margin-top: ${verticalSpacing / 2}mm; min-height: ${Math.max(1, height * 0.08)}mm;">
+            <!-- Left: Language -->
+            <div style="text-align: left; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: bold;">
+              ${settings.includeLanguage && item.language && item.language !== 'none' ? `<span>${item.language}</span>` : '<span></span>'}
+            </div>
+            <!-- Middle: Title -->
+            <div style="text-align: center; flex: 2; margin: 0 1mm; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 50%; font-weight: bold;">
+              ${settings.includeTitle ? `<span style="font-size: ${detailSize}px;">${item.name}</span>` : ''}
+            </div>
+            <!-- Right: Price -->
+            <div style="text-align: right; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: bold;">
+              ${settings.includePrice && item.price ? `<span>₹${item.price}</span>` : '<span></span>'}
+            </div>
+          </div>
+        </div>
+      `;
+    });
+  }).join('');
 
-      // Add text
-      doc.setFontSize(8);
-      doc.setTextColor(0, 0, 0);
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Barcodes</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10mm;
+          }
+          .barcode-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+          }
+          @media print {
+            @page {
+              size: A4;
+              margin: 0;
+            }
+            body {
+              margin: 10mm;
+            }
+          }
+        </style>
+        <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+      </head>
+      <body>
+        <div class="barcode-container">
+          ${barcodeItemsHtml}
+        </div>
+        <script>
+          // Generate barcodes after the page loads
+          window.onload = function() {
+            ${items.flatMap((item) => {
+    return Array.from({ length: quantity }, (_, index) => {
+      const itemId = `barcode-${item.id}-${index}`;
+      return `
+                  try {
+                    // Format the barcode value based on the selected type
+                    const barcodeValue = "${settings.type}" === "CODE128" ? "${item.id}" :
+                                        "${settings.type}" === "EAN13" ? "590123412345" : "012345678905";
 
-      // Add item ID as barcode number
-      doc.text(item.id, x + width / 2, y + height * 0.2 + barcodeHeight + 3, { align: 'center' });
+                    // Calculate appropriate barcode dimensions
+                    const contentHeight = ${height};
+                    const headingSpace = "${settings.customHeading}" ? contentHeight * 0.18 : 0; // Increased for larger font
+                    const detailsSpace = contentHeight * 0.15; // Increased for larger font at bottom
 
-      // Add item name if enabled
-      if (settings.includeTitle) {
-        doc.setFontSize(6);
-        doc.text(
-          item.name.length > 20 ? item.name.substring(0, 20) + '...' : item.name,
-          x + width / 2,
-          y + height * 0.1,
-          { align: 'center' }
-        );
-      }
+                    // Available height for barcode - reduced to fit content
+                    const availableHeight = contentHeight - headingSpace - detailsSpace;
+                    const barcodeHeight = Math.min(availableHeight * 0.65, ${height} * 0.35); // Slightly reduced
 
-      // Add price if enabled
-      if (settings.includePrice && item.price) {
-        doc.setFontSize(7);
-        doc.setFont('helvetica', 'bold');
-        doc.text(`₹${item.price}`, x + width / 2, y + height * 0.9, { align: 'center' });
-      }
+                    JsBarcode("#${itemId}", barcodeValue, {
+                      format: "${settings.type}",
+                      width: Math.max(1, ${width} * 0.03),
+                      height: barcodeHeight,
+                      displayValue: true,
+                      fontSize: Math.max(8, ${width} * 0.2),
+                      margin: 0
+                    });
+                  } catch (error) {
+                    console.error('Error generating barcode for ${item.id}:', error);
+                    // Fallback to CODE128 if the selected format fails
+                    JsBarcode("#${itemId}", "${item.id}", {
+                      format: "CODE128",
+                      width: Math.max(1, ${width} * 0.03),
+                      height: barcodeHeight,
+                      displayValue: true,
+                      fontSize: Math.max(8, ${width} * 0.2),
+                      margin: 0
+                    });
+                  }
+                `;
+    });
+  }).join('')}
 
-      // Add language if enabled
-      if (settings.includeLanguage && item.language && item.language !== 'none') {
-        doc.setFontSize(6);
-        doc.setFont('helvetica', 'normal');
-        doc.text(item.language, x + width * 0.8, y + height * 0.15, { align: 'right' });
-      }
-
-      // Move to next position
-      currentCol++;
-      if (currentCol >= cols) {
-        currentCol = 0;
-        currentRow++;
-        if (currentRow >= rows) {
-          currentRow = 0;
-          currentPage++;
-        }
-      }
-    }
-  });
-
-  return doc;
+            // Print and close after a short delay to ensure barcodes render
+            setTimeout(() => {
+              window.print();
+              setTimeout(() => window.close(), 500);
+            }, 500);
+          };
+        </script>
+      </body>
+    </html>
+  `;
 }
 
-// Function to print barcodes
+/**
+ * Print barcodes using the browser's print functionality
+ */
 export function printBarcodes(items: BarcodeItem[], settings: BarcodeSettings, quantity: number = 1): void {
-  const doc = generateBarcodePDF(items, settings, quantity);
+  // Generate HTML for barcodes
+  const html = generateBarcodesHtml(items, settings, quantity);
 
-  // In a real app, this would send the PDF to a printer
-  // For this mock, we'll just open it in a new window
-  doc.output('dataurlnewwindow');
-}
+  // Create a new window for printing
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    alert('Please allow popups to print barcodes');
+    return;
+  }
 
-// Function to generate a single barcode for preview
-export function generateBarcodePreview(item: BarcodeItem, settings: BarcodeSettings): string {
-  const doc = generateBarcodePDF([item], settings);
-
-  // Return as data URL
-  return doc.output('datauristring');
+  // Write the HTML to the new window
+  printWindow.document.open();
+  printWindow.document.write(html);
+  printWindow.document.close();
 }

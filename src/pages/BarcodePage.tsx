@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import Barcode from 'react-barcode';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PrinterIcon, SearchIcon, CheckIcon } from 'lucide-react';
 import { BarcodeItem, BarcodeSettings, printBarcodes } from '@/lib/utils/barcodeUtils';
+import { BarcodePreview } from '@/components/settings/BarcodePreview';
 
 // Mock inventory data
 const mockInventory = [
@@ -32,6 +32,7 @@ export function BarcodePage() {
   const [includePrice, setIncludePrice] = useState<boolean>(true);
   const [includeTitle, setIncludeTitle] = useState<boolean>(true);
   const [includeLanguage, setIncludeLanguage] = useState<boolean>(true);
+  const [customHeading, setCustomHeading] = useState<string>('ISKCON Temple');
   const [quantity, setQuantity] = useState<number>(1);
   const [previewItem, setPreviewItem] = useState<typeof mockInventory[0] | null>(null);
 
@@ -74,7 +75,8 @@ export function BarcodePage() {
       size: barcodeSize,
       includePrice,
       includeTitle,
-      includeLanguage
+      includeLanguage,
+      customHeading
     };
 
     try {
@@ -211,22 +213,25 @@ export function BarcodePage() {
               </CardHeader>
               <CardContent className="flex flex-col items-center">
                 <div className="mb-4 rounded-md border p-6">
-                  <Barcode
-                    value={previewItem.id}
-                    format={barcodeType as any}
-                    width={2}
-                    height={50}
-                    displayValue={true}
-                    textMargin={6}
-                    fontSize={14}
+                  <BarcodePreview
+                    item={{
+                      id: previewItem.id,
+                      name: previewItem.name,
+                      price: previewItem.price,
+                      language: previewItem.language,
+                      category: previewItem.category
+                    }}
+                    settings={{
+                      type: barcodeType,
+                      size: barcodeSize,
+                      includePrice,
+                      includeTitle,
+                      includeLanguage,
+                      customHeading
+                    }}
                   />
                 </div>
-                <div className="text-center">
-                  <p className="font-medium">{previewItem.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {previewItem.language && previewItem.language !== 'none' ? t(`inventory.languages.${previewItem.language}`) : ''} - {previewItem.price}
-                  </p>
-                </div>
+
               </CardContent>
               <CardFooter className="flex justify-center">
                 <Button
@@ -244,7 +249,8 @@ export function BarcodePage() {
                       size: barcodeSize,
                       includePrice,
                       includeTitle,
-                      includeLanguage
+                      includeLanguage,
+                      customHeading
                     };
 
                     try {
@@ -352,6 +358,15 @@ export function BarcodePage() {
                     </SelectContent>
                   </Select>
                 </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">{t('barcode.customHeading')}</label>
+                  <Input
+                    value={customHeading}
+                    onChange={(e) => setCustomHeading(e.target.value)}
+                    placeholder="ISKCON Temple"
+                  />
+                </div>
               </div>
             </CardContent>
             <CardFooter>
@@ -372,7 +387,8 @@ export function BarcodePage() {
                     size: barcodeSize,
                     includePrice,
                     includeTitle,
-                    includeLanguage
+                    includeLanguage,
+                    customHeading
                   };
 
                   try {

@@ -26,8 +26,8 @@ SevaBook is a beautiful, intuitive inventory and point-of-sale system designed s
 - **State Management**: React Context API
 - **Form Handling**: React Hook Form with Zod validation
 - **Internationalization**: i18next
-- **Barcode Generation**: react-barcode
-- **PDF Generation**: jsPDF
+- **Barcode Generation**: react-barcode, jsbarcode
+- **Thermal Printing**: react-thermal-printer
 
 ## Getting Started
 

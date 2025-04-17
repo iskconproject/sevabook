@@ -195,7 +195,8 @@
       "size": "সাইজ",
       "includePrice": "মূল্য অন্তর্ভুক্ত করুন",
       "includeTitle": "শিরোনাম অন্তর্ভুক্ত করুন",
-      "includeLanguage": "ভাষা অন্তর্ভুক্ত করুন"
+      "includeLanguage": "ভাষা অন্তর্ভুক্ত করুন",
+      "customHeading": "কাস্টম শিরোনাম"
     }
   },
   "users": {

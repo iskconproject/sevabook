@@ -195,7 +195,8 @@
       "size": "आकार",
       "includePrice": "मूल्य शामिल करें",
       "includeTitle": "शीर्षक शामिल करें",
-      "includeLanguage": "भाषा शामिल करें"
+      "includeLanguage": "भाषा शामिल करें",
+      "customHeading": "कस्टम शीर्षक"
     }
   },
   "users": {

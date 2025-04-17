@@ -34,6 +34,7 @@ export function SettingsPage() {
   const [includePrice, setIncludePrice] = useState(true);
   const [includeTitle, setIncludeTitle] = useState(true);
   const [includeLanguage, setIncludeLanguage] = useState(true);
+  const [customHeading, setCustomHeading] = useState('ISKCON Temple');
 
   // Sample barcode item for preview
   const sampleBarcodeItem: BarcodeItem = {
@@ -355,6 +356,15 @@ export function SettingsPage() {
                     </SelectContent>
                   </Select>
                 </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">{t('settings.barcodeSettings.customHeading')}</label>
+                  <Input
+                    value={customHeading}
+                    onChange={(e) => setCustomHeading(e.target.value)}
+                    placeholder="ISKCON Temple"
+                  />
+                </div>
               </CardContent>
               <CardFooter>
                 <Button>
@@ -375,10 +385,14 @@ export function SettingsPage() {
               <CardContent className="flex flex-col items-center">
                 <BarcodePreview
                   item={sampleBarcodeItem}
-                  type={barcodeType}
-                  includeTitle={includeTitle}
-                  includePrice={includePrice}
-                  includeLanguage={includeLanguage}
+                  settings={{
+                    type: barcodeType,
+                    size: barcodeSize,
+                    includePrice,
+                    includeTitle,
+                    includeLanguage,
+                    customHeading
+                  }}
                 />
               </CardContent>
               <CardFooter className="flex justify-center">

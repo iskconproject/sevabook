@@ -195,7 +195,8 @@
       "size": "Size",
       "includePrice": "Include Price",
       "includeTitle": "Include Title",
-      "includeLanguage": "Include Language"
+      "includeLanguage": "Include Language",
+      "customHeading": "Custom Heading"
     }
   },
   "users": {
@@ -227,7 +228,8 @@
     "batchPrint": "Batch Print",
     "labelSize": "Label Size",
     "quantity": "Quantity",
-    "printSettings": "Print Settings"
+    "printSettings": "Print Settings",
+    "customHeading": "Custom Heading"
   },
   "errors": {
     "required": "This field is required",
