@@ -209,10 +209,30 @@
     "role": "Role",
     "status": "Status",
     "lastLogin": "Last Login",
+    "selectRole": "Select a role",
+    "selectStatus": "Select a status",
+    "userUpdated": "User updated successfully",
+    "userAdded": "User added successfully",
+    "userDeleted": "User deleted successfully",
+    "addUserDescription": "Add a new user to the system",
+    "editUserDescription": "Edit user details and permissions",
+    "deleteConfirmation": "Delete User",
+    "deleteConfirmationDescription": "Are you sure you want to delete this user? This action cannot be undone.",
+    "cannotEditUser": "You don't have permission to edit this user",
+    "cannotDeleteUser": "You don't have permission to delete this user",
+    "cannotCreateSuperAdmin": "Only Super Admins can create other Super Admins",
+    "superAdminInfo": "Super Admin has full access to all features and cannot be deleted",
     "roles": {
+      "superAdmin": "Super Admin",
       "admin": "Admin",
-      "volunteer": "Volunteer",
-      "viewer": "Viewer"
+      "seller": "Seller",
+      "manager": "Inventory Manager"
+    },
+    "roleDescriptions": {
+      "superAdmin": "Full access to all features and user management",
+      "admin": "Full access to all features and can manage users below admin level",
+      "seller": "Access to POS for sales transactions only",
+      "manager": "Access to inventory and barcode management only"
     },
     "statusOptions": {
       "active": "Active",
@@ -239,6 +259,7 @@
     "passwordMismatch": "Passwords do not match",
     "invalidNumber": "Invalid number",
     "networkError": "Network error. Please check your connection",
-    "unknownError": "An unknown error occurred"
+    "unknownError": "An unknown error occurred",
+    "unauthorized": "Unauthorized Action"
   }
 }

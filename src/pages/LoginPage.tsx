@@ -45,6 +45,7 @@ export function LoginPage() {
         });
       } else {
         toast.success(t('auth.loginSuccess'));
+        // Let the RoleRedirect component handle the routing based on user role
         navigate('/');
       }
     } catch (error) {
@@ -115,6 +116,62 @@ export function LoginPage() {
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? t('common.loading') : t('auth.login')}
               </Button>
+
+              {import.meta.env.DEV && (
+                <div className="mt-4 space-y-2">
+                  <p className="text-xs text-muted-foreground text-center">Development Quick Login</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        form.setValue('email', 'arindamdawn3@gmail.com');
+                        form.setValue('password', 'password123');
+                        form.handleSubmit(onSubmit)();
+                      }}
+                    >
+                      Super Admin
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        form.setValue('email', 'admin@example.com');
+                        form.setValue('password', 'password123');
+                        form.handleSubmit(onSubmit)();
+                      }}
+                    >
+                      Admin
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        form.setValue('email', 'seller@example.com');
+                        form.setValue('password', 'password123');
+                        form.handleSubmit(onSubmit)();
+                      }}
+                    >
+                      Seller
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        form.setValue('email', 'manager@example.com');
+                        form.setValue('password', 'password123');
+                        form.handleSubmit(onSubmit)();
+                      }}
+                    >
+                      Manager
+                    </Button>
+                  </div>
+                </div>
+              )}
             </form>
           </Form>
         </CardContent>
