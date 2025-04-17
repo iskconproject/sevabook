@@ -28,7 +28,9 @@
     "selected": "Selected",
     "tryAgain": "Try Again",
     "all": "All",
-    "clear": "Clear"
+    "clear": "Clear",
+    "preview": "Preview",
+    "print": "Print"
   },
   "auth": {
     "login": "Login",
@@ -170,6 +172,7 @@
     "barcodes": "Barcodes",
     "backup": "Backup & Restore",
     "about": "About",
+    "livePreview": "Live Preview",
     "theme": {
       "title": "Theme",
       "light": "Light",

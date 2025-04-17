@@ -71,6 +71,9 @@ importers:
       i18next:
         specifier: ^25.0.0
         version: 25.0.0(typescript@5.7.3)
+      jsbarcode:
+        specifier: ^3.11.6
+        version: 3.11.6
       jspdf:
         specifier: ^3.0.1
         version: 3.0.1
@@ -95,6 +98,9 @@ importers:
       react-router-dom:
         specifier: ^7.5.0
         version: 7.5.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      react-thermal-printer:
+        specifier: ^0.21.0
+        version: 0.21.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       sonner:
         specifier: ^2.0.3
         version: 2.0.3(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -906,6 +912,12 @@ packages:
   '@radix-ui/rect@1.1.1':
     resolution: {integrity: sha512-HPwpGIzkl28mWyZqG52jiqDJ12waP11Pa1lGoiyUkIEuMLBP0oeK/C89esbXrxsky5we7dfd8U58nm0SgAWpVw==}
 
+  '@react-thermal-printer/image@0.13.0':
+    resolution: {integrity: sha512-DS2ZYSjpCpWO6jc60dH9Is6dkyP+syLr6M4zrMtO9oSM5KcX9zbU12ConX+aLFhRg4lZjS8haE4pUXvpvnJMHA==}
+
+  '@react-thermal-printer/printer@0.18.0':
+    resolution: {integrity: sha512-gelDSKQlz0dNELcs9J+itLSGUBsWfCI/3dZcWWhRaRawipVmGQc3F/8UMbihe+IDWJ4SZeH7pVKQRSD1VlLx4Q==}
+
   '@rollup/rollup-android-arm-eabi@4.40.0':
     resolution: {integrity: sha512-+Fbls/diZ0RDerhE8kyC6hjADCXA1K4yVNlH0EYfd2XjyH0UGgzaQ8MlT0pCXAThfxv3QUAczHaL+qSv1E4/Cg==}
     cpu: [arm]
@@ -1303,6 +1315,9 @@ packages:
   class-variance-authority@0.7.1:
     resolution: {integrity: sha512-Ka+9Trutv7G8M6WT6SeiRWz792K5qEqIGEGzXKhAE6xOWAY6pPH8U+9IY3oCMv6kqTmLsv7Xh/2w2RigkePMsg==}
 
+  classnames@2.5.1:
+    resolution: {integrity: sha512-saHYOzhIQs6wy2sVxTM6bUDsQO4F50V9RQ22qBpEdCW+I+/Wmke2HOl6lS6dTpdxVhb88/I6+Hs+438c3lfUow==}
+
   clsx@2.1.1:
     resolution: {integrity: sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==}
     engines: {node: '>=6'}
@@ -1374,6 +1389,9 @@ packages:
   enhanced-resolve@5.18.1:
     resolution: {integrity: sha512-ZSW3ma5GkcQBIpwZTSRAI8N71Uuwgs93IezB7mf7R60tC8ZbJideoDNKjHn2O9KIlx6rkGTTEk1xUCK2E1Y2Yg==}
     engines: {node: '>=10.13.0'}
+
+  es-toolkit@1.35.0:
+    resolution: {integrity: sha512-kVHyrRoC0eLc1hWJ6npG8nNFtOG+nWfcMI+XE0RaFO0gxd6Ions8r0O/U64QyZgY7IeidUnS5oZlRZYUgMGCAg==}
 
   esbuild@0.25.2:
     resolution: {integrity: sha512-16854zccKPnC+toMywC+uKNeYSv+/eXkevRAfwRD/G9Cleq66m8XFIrigkbvauLLlCfDL45Q2cWegSg53gGBnQ==}
@@ -1486,6 +1504,9 @@ packages:
 
   flatted@3.3.3:
     resolution: {integrity: sha512-GX+ysw4PBCz0PzosHDepZGANEuFCMLrnRTiEy9McGjmkCQYwRq4A/X786G/fjM/+OjsWSU1ZrY5qyARZmO/uwg==}
+
+  floyd-steinberg@1.0.6:
+    resolution: {integrity: sha512-gzlre+taSQzEY+nCusbHJFQ3zHXBkRAX4fe3szssPY/N/t1ClBX9hnHZM4o8ZvpdqLLUPEavuZ/Noj71ZaA8+A==}
 
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
@@ -1872,6 +1893,12 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  react-thermal-printer@0.21.0:
+    resolution: {integrity: sha512-loT8u2j25AVnbumSdWbgr9d0xfYKRh5I3OEz7f0zlprOHx2LuPSGH7Mvj26MIkT5gCOdY/wNxclVngTQLw+cEQ==}
+    peerDependencies:
+      react: ^18 || ^19
+      react-dom: ^18 || ^19
 
   react@19.1.0:
     resolution: {integrity: sha512-FS+XFBNvn3GTAWq26joslQgWNoFu08F4kl0J4CgdNKADkdSGXQyTCnKteIAJy96Br6YbpEU1LSzV5dYtjMkMDg==}
@@ -2850,6 +2877,14 @@ snapshots:
 
   '@radix-ui/rect@1.1.1': {}
 
+  '@react-thermal-printer/image@0.13.0':
+    dependencies:
+      floyd-steinberg: 1.0.6
+
+  '@react-thermal-printer/printer@0.18.0':
+    dependencies:
+      '@react-thermal-printer/image': 0.13.0
+
   '@rollup/rollup-android-arm-eabi@4.40.0':
     optional: true
 
@@ -3243,6 +3278,8 @@ snapshots:
     dependencies:
       clsx: 2.1.1
 
+  classnames@2.5.1: {}
+
   clsx@2.1.1: {}
 
   cmdk@1.1.1(@types/react-dom@19.1.2(@types/react@19.1.2))(@types/react@19.1.2)(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
@@ -3308,6 +3345,8 @@ snapshots:
     dependencies:
       graceful-fs: 4.2.11
       tapable: 2.2.1
+
+  es-toolkit@1.35.0: {}
 
   esbuild@0.25.2:
     optionalDependencies:
@@ -3461,6 +3500,8 @@ snapshots:
       keyv: 4.5.4
 
   flatted@3.3.3: {}
+
+  floyd-steinberg@1.0.6: {}
 
   fsevents@2.3.3:
     optional: true
@@ -3780,6 +3821,15 @@ snapshots:
       tslib: 2.8.1
     optionalDependencies:
       '@types/react': 19.1.2
+
+  react-thermal-printer@0.21.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
+    dependencies:
+      '@react-thermal-printer/image': 0.13.0
+      '@react-thermal-printer/printer': 0.18.0
+      classnames: 2.5.1
+      es-toolkit: 1.35.0
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
 
   react@19.1.0: {}
 

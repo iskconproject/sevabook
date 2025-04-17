@@ -8,6 +8,8 @@ import { DialogFooter } from '@/components/ui/dialog';
 import { GooglePayButton } from './GooglePayButton';
 import { toast } from 'sonner';
 import { CreditCardIcon, BanknoteIcon, SmartphoneIcon, PrinterIcon, MailIcon, CheckIcon, ArrowRightIcon } from 'lucide-react';
+import { ReceiptItem, ReceiptSettings } from '@/lib/utils/receiptUtils';
+import { printThermalReceipt } from './ThermalReceipt';
 
 interface CheckoutDialogProps {
   cart: Array<{
@@ -28,70 +30,96 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
   const [upiId, setUpiId] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
-  
+
   // Calculate change due for cash payments
   const changeDue = cashReceived ? parseFloat(cashReceived) - subtotal : 0;
-  
+
   const handlePaymentComplete = () => {
     setIsProcessing(true);
-    
+
     // Simulate payment processing
     setTimeout(() => {
       setIsProcessing(false);
       setIsCompleted(true);
-      
+
       toast.success(t('pos.transactionComplete'), {
         description: t('pos.transactionSuccessful'),
       });
     }, 1500);
   };
-  
+
   const handleGooglePaySuccess = (paymentData: any) => {
     setIsCompleted(true);
   };
-  
+
   const handleGooglePayError = (error: Error) => {
     toast.error(t('pos.paymentFailed'), {
       description: error.message,
     });
   };
-  
+
   const handlePrintReceipt = () => {
     toast.info(t('pos.printingReceipt'), {
       description: t('pos.printingReceiptDescription'),
     });
-    
-    // In a real app, this would trigger receipt printing
+
+    // Convert cart items to receipt items
+    const receiptItems: ReceiptItem[] = cart.map(item => ({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity
+    }));
+
+    // Create receipt settings
+    const receiptSettings: ReceiptSettings = {
+      header: 'ISKCON Temple Book Stall',
+      footer: 'Thank you for your purchase! Hare Krishna!',
+      showLogo: true,
+      showBarcode: true,
+      customMessage: 'Hare Krishna! Thank you for supporting ISKCON Temple.'
+    };
+
+    // Print receipt using thermal printer
+    printThermalReceipt(receiptItems, receiptSettings, `TR-${Date.now()}`)
+      .catch(error => {
+        console.error('Error printing receipt:', error);
+        toast.error(t('pos.printingError'), {
+          description: t('pos.printingErrorDescription'),
+        });
+      });
+
+    // Complete checkout after a short delay
     setTimeout(() => {
       onComplete();
     }, 1000);
   };
-  
+
   const handleEmailReceipt = () => {
     toast.info(t('pos.emailingReceipt'), {
       description: t('pos.emailingReceiptDescription'),
     });
-    
+
     // In a real app, this would send an email receipt
     setTimeout(() => {
       onComplete();
     }, 1000);
   };
-  
+
   if (isCompleted) {
     return (
       <div className="space-y-6">
         <div className="rounded-full bg-primary/10 p-3 text-primary w-12 h-12 mx-auto">
           <CheckIcon className="h-6 w-6" />
         </div>
-        
+
         <div className="text-center space-y-2">
           <h2 className="text-2xl font-bold">{t('pos.transactionComplete')}</h2>
           <p className="text-muted-foreground">
             {t('pos.transactionSuccessful')}
           </p>
         </div>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>{t('pos.receiptOptions')}</CardTitle>
@@ -100,25 +128,25 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button 
-              className="w-full" 
+            <Button
+              className="w-full"
               onClick={handlePrintReceipt}
             >
               <PrinterIcon className="mr-2 h-4 w-4" />
               {t('pos.printReceipt')}
             </Button>
-            
-            <Button 
-              variant="outline" 
+
+            <Button
+              variant="outline"
               className="w-full"
               onClick={handleEmailReceipt}
             >
               <MailIcon className="mr-2 h-4 w-4" />
               {t('pos.emailReceipt')}
             </Button>
-            
-            <Button 
-              variant="ghost" 
+
+            <Button
+              variant="ghost"
               className="w-full"
               onClick={onComplete}
             >
@@ -130,7 +158,7 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
       </div>
     );
   }
-  
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="cash" onValueChange={(value) => setPaymentMethod(value as any)}>
@@ -152,7 +180,7 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
             {t('pos.googlePay')}
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="cash" className="space-y-4">
           <Card>
             <CardHeader>
@@ -174,7 +202,7 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
                   onChange={(e) => setCashReceived(e.target.value)}
                 />
               </div>
-              
+
               {parseFloat(cashReceived) >= subtotal && (
                 <div className="rounded-md bg-primary/10 p-4">
                   <div className="flex justify-between font-medium">
@@ -185,8 +213,8 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
               )}
             </CardContent>
             <CardFooter>
-              <Button 
-                className="w-full" 
+              <Button
+                className="w-full"
                 disabled={parseFloat(cashReceived) < subtotal || isProcessing}
                 onClick={handlePaymentComplete}
               >
@@ -195,7 +223,7 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
             </CardFooter>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="card" className="space-y-4">
           <Card>
             <CardHeader>
@@ -213,8 +241,8 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
               </div>
             </CardContent>
             <CardFooter>
-              <Button 
-                className="w-full" 
+              <Button
+                className="w-full"
                 disabled={isProcessing}
                 onClick={handlePaymentComplete}
               >
@@ -223,7 +251,7 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
             </CardFooter>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="upi" className="space-y-4">
           <Card>
             <CardHeader>
@@ -243,7 +271,7 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
                   onChange={(e) => setUpiId(e.target.value)}
                 />
               </div>
-              
+
               <div className="rounded-md bg-muted p-8 text-center">
                 <div className="mx-auto h-32 w-32 bg-white rounded-md flex items-center justify-center">
                   <span className="text-xs">QR Code Placeholder</span>
@@ -254,8 +282,8 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
               </div>
             </CardContent>
             <CardFooter>
-              <Button 
-                className="w-full" 
+              <Button
+                className="w-full"
                 disabled={isProcessing}
                 onClick={handlePaymentComplete}
               >
@@ -264,7 +292,7 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
             </CardFooter>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="googlepay" className="space-y-4">
           <Card>
             <CardHeader>
@@ -274,16 +302,16 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <GooglePayButton 
-                amount={subtotal} 
-                onSuccess={handleGooglePaySuccess} 
-                onError={handleGooglePayError} 
+              <GooglePayButton
+                amount={subtotal}
+                onSuccess={handleGooglePaySuccess}
+                onError={handleGooglePayError}
               />
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
-      
+
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
           <span>{t('pos.subtotal')}</span>
@@ -294,7 +322,7 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
           <span>₹{subtotal.toFixed(2)}</span>
         </div>
       </div>
-      
+
       <DialogFooter>
         <Button variant="outline" onClick={onCancel}>
           {t('common.cancel')}
