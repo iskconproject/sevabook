@@ -22,7 +22,11 @@
     "yes": "Yes",
     "no": "No",
     "confirm": "Confirm",
-    "actions": "Actions"
+    "actions": "Actions",
+    "filter": "Filter",
+    "none": "None",
+    "selected": "Selected",
+    "tryAgain": "Try Again"
   },
   "auth": {
     "login": "Login",
@@ -67,6 +71,25 @@
     "lowStockAlert": "Low Stock Alert",
     "outOfStock": "Out of Stock",
     "manageInventory": "Manage your inventory items",
+    "addItemDescription": "Add a new item to your inventory",
+    "editItemDescription": "Edit the details of this inventory item",
+    "itemAdded": "Item added successfully",
+    "itemUpdated": "Item updated successfully",
+    "itemDeleted": "Item deleted successfully",
+    "selectCategory": "Select a category",
+    "selectLanguage": "Select a language",
+    "deleteConfirmation": "Delete Item",
+    "deleteConfirmationDescription": "Are you sure you want to delete this item? This action cannot be undone.",
+    "aiDetectionComplete": "AI Detection Complete",
+    "aiDetectionSuccess": "Item details have been filled automatically",
+    "aiDetectionDescription": "Take a photo of the item to automatically detect its details",
+    "itemRecognized": "Item Recognized",
+    "itemNotRecognized": "Item Not Recognized",
+    "tryAgain": "Please try again or enter details manually",
+    "cameraError": "Camera Error",
+    "capturedImage": "Captured Image",
+    "takePhotoDescription": "Take a photo of the item to automatically detect its details",
+    "confidence": "Confidence",
     "categories": {
       "books": "Books",
       "incense": "Incense",
@@ -185,7 +208,7 @@
       "volunteer": "Volunteer",
       "viewer": "Viewer"
     },
-    "status": {
+    "statusOptions": {
       "active": "Active",
       "inactive": "Inactive",
       "pending": "Pending"

@@ -22,7 +22,11 @@
     "yes": "হ্যাঁ",
     "no": "না",
     "confirm": "নিশ্চিত করুন",
-    "actions": "কার্যক্রম"
+    "actions": "কার্যক্রম",
+    "filter": "ফিল্টার",
+    "none": "কোনোটি নয়",
+    "selected": "নির্বাচিত",
+    "tryAgain": "আবার চেষ্টা করুন"
   },
   "auth": {
     "login": "লগইন",
@@ -67,6 +71,25 @@
     "lowStockAlert": "কম স্টক সতর্কতা",
     "outOfStock": "স্টক শেষ",
     "manageInventory": "আপনার ইনভেন্টরি আইটেম পরিচালনা করুন",
+    "addItemDescription": "আপনার ইনভেন্টরিতে একটি নতুন আইটেম যোগ করুন",
+    "editItemDescription": "এই ইনভেন্টরি আইটেমের বিবরণ সম্পাদনা করুন",
+    "itemAdded": "আইটেম সফলভাবে যোগ করা হয়েছে",
+    "itemUpdated": "আইটেম সফলভাবে আপডেট করা হয়েছে",
+    "itemDeleted": "আইটেম সফলভাবে মুছে ফেলা হয়েছে",
+    "selectCategory": "একটি বিভাগ নির্বাচন করুন",
+    "selectLanguage": "একটি ভাষা নির্বাচন করুন",
+    "deleteConfirmation": "আইটেম মুছুন",
+    "deleteConfirmationDescription": "আপনি কি নিশ্চিত এই আইটেমটি মুছে ফেলতে চান? এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।",
+    "aiDetectionComplete": "AI ডিটেকশন সম্পূর্ণ",
+    "aiDetectionSuccess": "আইটেম বিবরণ স্বয়ংক্রিয়ভাবে পূরণ করা হয়েছে",
+    "aiDetectionDescription": "আইটেমের বিবরণ স্বয়ংক্রিয়ভাবে শনাক্ত করতে আইটেমের ছবি তুলুন",
+    "itemRecognized": "আইটেম শনাক্ত করা হয়েছে",
+    "itemNotRecognized": "আইটেম শনাক্ত করা যায়নি",
+    "tryAgain": "অনুগ্রহ করে আবার চেষ্টা করুন অথবা বিবরণ ম্যানুয়ালি লিখুন",
+    "cameraError": "ক্যামেরা ত্রুটি",
+    "capturedImage": "ক্যাপচার করা ছবি",
+    "takePhotoDescription": "আইটেমের বিবরণ স্বয়ংক্রিয়ভাবে শনাক্ত করতে আইটেমের ছবি তুলুন",
+    "confidence": "আত্মবিশ্বাস",
     "categories": {
       "books": "বই",
       "incense": "ধূপ",
@@ -185,7 +208,7 @@
       "volunteer": "স্বেচ্ছাসেবক",
       "viewer": "দর্শক"
     },
-    "status": {
+    "statusOptions": {
       "active": "সক্রিয়",
       "inactive": "নিষ্ক্রিয়",
       "pending": "অপেক্ষমান"

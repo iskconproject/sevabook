@@ -22,7 +22,11 @@
     "yes": "हां",
     "no": "नहीं",
     "confirm": "पुष्टि करें",
-    "actions": "कार्रवाई"
+    "actions": "कार्रवाई",
+    "filter": "फ़िल्टर",
+    "none": "कोई नहीं",
+    "selected": "चयनित",
+    "tryAgain": "पुनः प्रयास करें"
   },
   "auth": {
     "login": "लॉगिन",
@@ -67,6 +71,25 @@
     "lowStockAlert": "कम स्टॉक अलर्ट",
     "outOfStock": "स्टॉक में नहीं है",
     "manageInventory": "अपनी इन्वेंटरी आइटम प्रबंधित करें",
+    "addItemDescription": "अपनी इन्वेंटरी में एक नया आइटम जोड़ें",
+    "editItemDescription": "इस इन्वेंटरी आइटम के विवरण को संपादित करें",
+    "itemAdded": "आइटम सफलतापूर्वक जोड़ा गया",
+    "itemUpdated": "आइटम सफलतापूर्वक अपडेट किया गया",
+    "itemDeleted": "आइटम सफलतापूर्वक हटाया गया",
+    "selectCategory": "एक श्रेणी चुनें",
+    "selectLanguage": "एक भाषा चुनें",
+    "deleteConfirmation": "आइटम हटाएं",
+    "deleteConfirmationDescription": "क्या आप वाकई इस आइटम को हटाना चाहते हैं? यह कार्य पूर्ववत नहीं किया जा सकता है।",
+    "aiDetectionComplete": "AI डिटेक्शन पूर्ण",
+    "aiDetectionSuccess": "आइटम विवरण स्वचालित रूप से भरे गए हैं",
+    "aiDetectionDescription": "आइटम के विवरण को स्वचालित रूप से पहचानने के लिए आइटम की फोटो लें",
+    "itemRecognized": "आइटम पहचाना गया",
+    "itemNotRecognized": "आइटम पहचाना नहीं गया",
+    "tryAgain": "कृपया पुनः प्रयास करें या विवरण मैन्युअली दर्ज करें",
+    "cameraError": "कैमरा त्रुटि",
+    "capturedImage": "कैप्चर की गई इमेज",
+    "takePhotoDescription": "आइटम के विवरण को स्वचालित रूप से पहचानने के लिए आइटम की फोटो लें",
+    "confidence": "विश्वास",
     "categories": {
       "books": "पुस्तकें",
       "incense": "अगरबत्ती",
@@ -185,7 +208,7 @@
       "volunteer": "स्वयंसेवक",
       "viewer": "दर्शक"
     },
-    "status": {
+    "statusOptions": {
       "active": "सक्रिय",
       "inactive": "निष्क्रिय",
       "pending": "लंबित"

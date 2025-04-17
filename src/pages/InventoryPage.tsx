@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { PlusIcon, SearchIcon, EditIcon, TrashIcon } from 'lucide-react';
 import { InventoryForm } from '@/components/inventory/InventoryForm';
 
@@ -26,6 +27,8 @@ export function InventoryPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<typeof mockInventory[0] | null>(null);
+  const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   // Filter inventory based on search query
   const filteredInventory = mockInventory.filter(item =>
@@ -50,11 +53,20 @@ export function InventoryPage() {
     setEditingItem(null);
   };
 
-  const handleDeleteItem = (itemId: string) => {
-    // In a real app, this would call an API to delete the item
-    toast.success(t('inventory.itemDeleted'), {
-      description: mockInventory.find(item => item.id === itemId)?.name,
-    });
+  const openDeleteDialog = (itemId: string) => {
+    setDeletingItemId(itemId);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteItem = () => {
+    if (deletingItemId) {
+      // In a real app, this would call an API to delete the item
+      toast.success(t('inventory.itemDeleted'), {
+        description: mockInventory.find(item => item.id === deletingItemId)?.name,
+      });
+      setIsDeleteDialogOpen(false);
+      setDeletingItemId(null);
+    }
   };
 
   const openEditDialog = (item: typeof mockInventory[0]) => {
@@ -178,7 +190,7 @@ export function InventoryPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleDeleteItem(item.id)}
+                          onClick={() => openDeleteDialog(item.id)}
                         >
                           <TrashIcon className="h-4 w-4" />
                         </Button>
@@ -196,6 +208,26 @@ export function InventoryPage() {
           </div>
         </CardFooter>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('inventory.deleteConfirmation')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('inventory.deleteConfirmationDescription')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>
+              {t('common.cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteItem} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {t('common.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
