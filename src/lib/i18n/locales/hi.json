@@ -66,6 +66,7 @@
     "generateBarcode": "बारकोड जनरेट करें",
     "lowStockAlert": "कम स्टॉक अलर्ट",
     "outOfStock": "स्टॉक में नहीं है",
+    "manageInventory": "अपनी इन्वेंटरी आइटम प्रबंधित करें",
     "categories": {
       "books": "पुस्तकें",
       "incense": "अगरबत्ती",
@@ -109,7 +110,8 @@
     "printReceipt": "रसीद प्रिंट करें",
     "emailReceipt": "ईमेल रसीद",
     "transactionComplete": "लेनदेन पूरा हुआ",
-    "transactionFailed": "लेनदेन विफल"
+    "transactionFailed": "लेनदेन विफल",
+    "startNewSale": "नई बिक्री शुरू करें"
   },
   "reports": {
     "title": "रिपोर्ट",

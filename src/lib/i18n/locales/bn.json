@@ -66,6 +66,7 @@
     "generateBarcode": "বারকোড তৈরি করুন",
     "lowStockAlert": "কম স্টক সতর্কতা",
     "outOfStock": "স্টক শেষ",
+    "manageInventory": "আপনার ইনভেন্টরি আইটেম পরিচালনা করুন",
     "categories": {
       "books": "বই",
       "incense": "ধূপ",
@@ -109,7 +110,8 @@
     "printReceipt": "রসিদ প্রিন্ট করুন",
     "emailReceipt": "ইমেইল রসিদ",
     "transactionComplete": "লেনদেন সম্পূর্ণ",
-    "transactionFailed": "লেনদেন ব্যর্থ হয়েছে"
+    "transactionFailed": "লেনদেন ব্যর্থ হয়েছে",
+    "startNewSale": "নতুন বিক্রয় শুরু করুন"
   },
   "reports": {
     "title": "রিপোর্ট",

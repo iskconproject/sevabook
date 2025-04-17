@@ -25,17 +25,17 @@ const mockInventoryData = [
   { id: '2', name: 'Bhagavad Gita As It Is', category: 'books', language: 'bengali', price: '₹220', stock: 32, sold: 85 },
   { id: '3', name: 'Bhagavad Gita As It Is', category: 'books', language: 'hindi', price: '₹230', stock: 28, sold: 92 },
   { id: '4', name: 'Sri Chaitanya Charitamrita', category: 'books', language: 'english', price: '₹450', stock: 15, sold: 45 },
-  { id: '5', name: 'Incense Sticks (Sandalwood)', category: 'incense', language: '', price: '₹50', stock: 120, sold: 350 },
-  { id: '6', name: 'Deity Dress (Small)', category: 'clothing', language: '', price: '₹350', stock: 8, sold: 12 },
-  { id: '7', name: 'Japa Mala', category: 'puja', language: '', price: '₹180', stock: 25, sold: 40 },
-  { id: '8', name: 'Krishna Murti (Brass, 8")', category: 'deities', language: '', price: '₹1200', stock: 5, sold: 8 },
+  { id: '5', name: 'Incense Sticks (Sandalwood)', category: 'incense', language: 'none', price: '₹50', stock: 120, sold: 350 },
+  { id: '6', name: 'Deity Dress (Small)', category: 'clothing', language: 'none', price: '₹350', stock: 8, sold: 12 },
+  { id: '7', name: 'Japa Mala', category: 'puja', language: 'none', price: '₹180', stock: 25, sold: 40 },
+  { id: '8', name: 'Krishna Murti (Brass, 8")', category: 'deities', language: 'none', price: '₹1200', stock: 5, sold: 8 },
 ];
 
 export function ReportsPage() {
   const { t } = useTranslation();
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  
+
   // Calculate summary statistics
   const totalSales = mockSalesData.reduce((sum, sale) => sum + parseInt(sale.amount.replace(/[₹,]/g, '')), 0);
   const totalItems = mockSalesData.reduce((sum, sale) => sum + sale.items, 0);
@@ -133,7 +133,7 @@ export function ReportsPage() {
               <TabsTrigger value="sales">{t('reports.salesReport')}</TabsTrigger>
               <TabsTrigger value="inventory">{t('reports.inventoryReport')}</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="sales" className="space-y-4">
               <div className="rounded-md border">
                 <Table>
@@ -158,7 +158,7 @@ export function ReportsPage() {
                 </Table>
               </div>
             </TabsContent>
-            
+
             <TabsContent value="inventory" className="space-y-4">
               <div className="rounded-md border">
                 <Table>
@@ -176,7 +176,7 @@ export function ReportsPage() {
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">
                           {item.name}
-                          {item.language && <span className="ml-1 text-xs text-muted-foreground">
+                          {item.language && item.language !== 'none' && <span className="ml-1 text-xs text-muted-foreground">
                             ({t(`inventory.languages.${item.language}`)})
                           </span>}
                         </TableCell>

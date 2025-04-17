@@ -66,6 +66,7 @@
     "generateBarcode": "Generate Barcode",
     "lowStockAlert": "Low Stock Alert",
     "outOfStock": "Out of Stock",
+    "manageInventory": "Manage your inventory items",
     "categories": {
       "books": "Books",
       "incense": "Incense",
@@ -109,7 +110,8 @@
     "printReceipt": "Print Receipt",
     "emailReceipt": "Email Receipt",
     "transactionComplete": "Transaction Complete",
-    "transactionFailed": "Transaction Failed"
+    "transactionFailed": "Transaction Failed",
+    "startNewSale": "Start New Sale"
   },
   "reports": {
     "title": "Reports",

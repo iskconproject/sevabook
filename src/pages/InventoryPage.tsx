@@ -15,10 +15,10 @@ const mockInventory = [
   { id: '2', name: 'Bhagavad Gita As It Is', category: 'books', language: 'bengali', price: '₹220', stock: 32 },
   { id: '3', name: 'Bhagavad Gita As It Is', category: 'books', language: 'hindi', price: '₹230', stock: 28 },
   { id: '4', name: 'Sri Chaitanya Charitamrita', category: 'books', language: 'english', price: '₹450', stock: 15 },
-  { id: '5', name: 'Incense Sticks (Sandalwood)', category: 'incense', language: '', price: '₹50', stock: 120 },
-  { id: '6', name: 'Deity Dress (Small)', category: 'clothing', language: '', price: '₹350', stock: 8 },
-  { id: '7', name: 'Japa Mala', category: 'puja', language: '', price: '₹180', stock: 25 },
-  { id: '8', name: 'Krishna Murti (Brass, 8")', category: 'deities', language: '', price: '₹1200', stock: 5 },
+  { id: '5', name: 'Incense Sticks (Sandalwood)', category: 'incense', language: 'none', price: '₹50', stock: 120 },
+  { id: '6', name: 'Deity Dress (Small)', category: 'clothing', language: 'none', price: '₹350', stock: 8 },
+  { id: '7', name: 'Japa Mala', category: 'puja', language: 'none', price: '₹180', stock: 25 },
+  { id: '8', name: 'Krishna Murti (Brass, 8")', category: 'deities', language: 'none', price: '₹1200', stock: 5 },
 ];
 
 export function InventoryPage() {
@@ -159,7 +159,7 @@ export function InventoryPage() {
                       <TableCell className="font-medium">{item.name}</TableCell>
                       <TableCell>{t(`inventory.categories.${item.category}`)}</TableCell>
                       <TableCell>
-                        {item.language ? t(`inventory.languages.${item.language}`) : '-'}
+                        {item.language && item.language !== 'none' ? t(`inventory.languages.${item.language}`) : '-'}
                       </TableCell>
                       <TableCell>{item.price}</TableCell>
                       <TableCell>

@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { PackageIcon, ShoppingCartIcon, AlertTriangleIcon, ReceiptIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { PackageIcon, ShoppingCartIcon, AlertTriangleIcon, ReceiptIcon, BarcodeIcon, PlusIcon } from 'lucide-react';
 
 export function DashboardPage() {
   const { t } = useTranslation();
@@ -87,6 +89,49 @@ export function DashboardPage() {
               In the last 24 hours
             </p>
           </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="hover:border-primary hover:shadow-md transition-all">
+          <Link to="/pos" className="block h-full">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-lg font-medium">
+                {t('pos.title')}
+              </CardTitle>
+              <ShoppingCartIcon className="h-6 w-6 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                {t('pos.newSale')}
+              </p>
+              <Button variant="default" className="w-full">
+                <ShoppingCartIcon className="mr-2 h-4 w-4" />
+                {t('pos.startNewSale')}
+              </Button>
+            </CardContent>
+          </Link>
+        </Card>
+
+        <Card className="hover:border-primary hover:shadow-md transition-all">
+          <Link to="/inventory" className="block h-full">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-lg font-medium">
+                {t('inventory.title')}
+              </CardTitle>
+              <PackageIcon className="h-6 w-6 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                {t('inventory.manageInventory')}
+              </p>
+              <Button variant="default" className="w-full">
+                <PlusIcon className="mr-2 h-4 w-4" />
+                {t('inventory.addItem')}
+              </Button>
+            </CardContent>
+          </Link>
         </Card>
       </div>
 

@@ -49,7 +49,7 @@ export function InventoryForm({ initialData, onSubmit, onCancel }: InventoryForm
     defaultValues: {
       name: initialData?.name || '',
       category: initialData?.category || 'books',
-      language: initialData?.language || '',
+      language: initialData?.language || 'none',
       price: initialData?.price?.replace('₹', '') || '',
       stock: initialData?.stock?.toString() || '0',
       description: initialData?.description || '',
@@ -165,7 +165,7 @@ export function InventoryForm({ initialData, onSubmit, onCancel }: InventoryForm
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">{t('common.none')}</SelectItem>
+                      <SelectItem value="none">{t('common.none')}</SelectItem>
                       <SelectItem value="english">{t('inventory.languages.english')}</SelectItem>
                       <SelectItem value="bengali">{t('inventory.languages.bengali')}</SelectItem>
                       <SelectItem value="hindi">{t('inventory.languages.hindi')}</SelectItem>

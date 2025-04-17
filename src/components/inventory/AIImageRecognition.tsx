@@ -24,13 +24,13 @@ export function AIImageRecognition({ onRecognized, onCancel }: AIImageRecognitio
     try {
       const imageData = await captureImageFromCamera();
       setCapturedImage(imageData);
-      
+
       if (imageData) {
         // Start recognition process
         setIsRecognizing(true);
         const item = await recognizeItemFromImage(imageData);
         setIsRecognizing(false);
-        
+
         if (item) {
           setRecognizedItem(item);
           toast.success(t('inventory.itemRecognized'), {
@@ -62,9 +62,9 @@ export function AIImageRecognition({ onRecognized, onCancel }: AIImageRecognitio
       <div className="flex justify-center">
         {capturedImage ? (
           <div className="relative">
-            <img 
-              src={capturedImage} 
-              alt={t('inventory.capturedImage')} 
+            <img
+              src={capturedImage}
+              alt={t('inventory.capturedImage')}
               className="max-h-64 rounded-md border"
             />
             {isRecognizing && (
@@ -82,8 +82,8 @@ export function AIImageRecognition({ onRecognized, onCancel }: AIImageRecognitio
               </CardDescription>
             </CardHeader>
             <CardContent className="flex justify-center">
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 onClick={handleCaptureImage}
                 disabled={isCapturing}
               >
@@ -118,7 +118,7 @@ export function AIImageRecognition({ onRecognized, onCancel }: AIImageRecognitio
               <div>
                 <span className="font-medium">{t('inventory.category')}:</span> {t(`inventory.categories.${recognizedItem.category}`)}
               </div>
-              {recognizedItem.language && (
+              {recognizedItem.language && recognizedItem.language !== 'none' && (
                 <div>
                   <span className="font-medium">{t('inventory.language')}:</span> {t(`inventory.languages.${recognizedItem.language}`)}
                 </div>
