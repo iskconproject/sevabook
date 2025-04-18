@@ -121,6 +121,7 @@
     "cart": "Cart",
     "emptyCart": "Cart is empty",
     "addToCart": "Add to Cart",
+    "itemAdded": "Item added to cart",
     "removeFromCart": "Remove",
     "checkout": "Checkout",
     "checkoutDescription": "Complete your sale by selecting a payment method",

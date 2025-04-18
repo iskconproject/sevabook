@@ -121,6 +121,7 @@
     "cart": "কার্ট",
     "emptyCart": "কার্ট খালি",
     "addToCart": "কার্টে যোগ করুন",
+    "itemAdded": "আইটেম কার্টে যোগ করা হয়েছে",
     "removeFromCart": "সরান",
     "checkout": "চেকআউট",
     "checkoutDescription": "পেমেন্ট পদ্ধতি নির্বাচন করে আপনার বিক্রয় সম্পূর্ণ করুন",

@@ -104,17 +104,102 @@ export const generateThermalReceiptPreview = async (
   settings: ReceiptSettings,
   transactionId: string = 'PREVIEW-123456'
 ): Promise<string> => {
-  const receiptJSX = (
-    <ThermalReceipt
-      items={items}
-      settings={settings}
-      transactionId={transactionId}
-    />
-  );
+  try {
+    const receiptJSX = (
+      <ThermalReceipt
+        items={items}
+        settings={settings}
+        transactionId={transactionId}
+      />
+    );
 
-  // Render the receipt to HTML
-  const html = await render(receiptJSX);
-  return html;
+    // Render the receipt to HTML
+    const html = await render(receiptJSX);
+    // Convert Uint8Array to string if needed
+    return typeof html === 'string' ? html : new TextDecoder().decode(html);
+  } catch (error) {
+    console.error('Error generating thermal receipt preview:', error);
+    // Return a simple fallback receipt in case of error
+    return generateFallbackReceiptHtml(items, settings, transactionId);
+  }
+};
+
+/**
+ * Generate a simple HTML receipt as fallback in case the thermal receipt preview fails
+ */
+const generateFallbackReceiptHtml = (
+  items: ReceiptItem[],
+  settings: ReceiptSettings,
+  transactionId: string
+): string => {
+  // Calculate totals
+  const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const total = subtotal; // Add tax calculation if needed
+
+  // Format date
+  const date = new Date().toLocaleDateString('en-IN', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  // Generate item rows
+  const itemRows = items.map(item => {
+    const itemTotal = item.price * item.quantity;
+    const languageInfo = item.language && item.language !== 'none'
+      ? `<span style="font-size: 0.8em; font-style: italic;">(${item.language})</span>`
+      : '';
+
+    return `
+      <div style="margin-bottom: 4px;">
+        <div>${item.name} ${languageInfo}</div>
+        <div style="display: flex; justify-content: space-between; padding-left: 16px;">
+          <span>${item.quantity}x</span>
+          <span>₹${item.price.toFixed(2)}</span>
+          <span>₹${itemTotal.toFixed(2)}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div style="font-family: 'Courier New', monospace; font-size: 12px;">
+      <div style="text-align: center; font-weight: bold; font-size: 16px; margin-bottom: 8px;">${settings.header}</div>
+
+      <div style="border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; padding: 8px 0; margin-bottom: 8px;">
+        <div style="display: flex; justify-content: space-between;">
+          <span>Date:</span>
+          <span>${date}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span>Receipt #:</span>
+          <span>${transactionId}</span>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 8px;">
+        ${itemRows}
+      </div>
+
+      <div style="border-top: 1px solid #ccc; padding-top: 8px; margin-bottom: 8px;">
+        <div style="display: flex; justify-content: space-between;">
+          <span>Subtotal:</span>
+          <span>₹${subtotal.toFixed(2)}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-weight: bold;">
+          <span>Total:</span>
+          <span>₹${total.toFixed(2)}</span>
+        </div>
+      </div>
+
+      <div style="text-align: center; border-top: 1px solid #ccc; padding-top: 8px;">
+        ${settings.customMessage ? `<div style="margin-bottom: 4px;">${settings.customMessage}</div>` : ''}
+        <div>${settings.footer}</div>
+      </div>
+    </div>
+  `;
 };
 
 /**
@@ -134,7 +219,9 @@ export const printThermalReceipt = async (
   );
 
   // Render the receipt to HTML
-  const html = await render(receiptJSX);
+  const htmlResult = await render(receiptJSX);
+  // Convert Uint8Array to string if needed
+  const html = typeof htmlResult === 'string' ? htmlResult : new TextDecoder().decode(htmlResult);
 
   // Create a new window for printing
   const printWindow = window.open('', '_blank');
@@ -143,38 +230,40 @@ export const printThermalReceipt = async (
     return;
   }
 
-  // Write the receipt HTML to the new window
-  printWindow.document.write(`
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>Receipt</title>
-        <style>
-          body {
-            font-family: 'Courier New', monospace;
-            margin: 0;
-            padding: 0;
-            background-color: white;
-          }
-          .receipt-container {
-            width: 80mm;
-            margin: 0 auto;
-            padding: 5mm;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="receipt-container">
-          ${html}
-        </div>
-        <script>
-          // Print and close after a short delay
-          setTimeout(() => {
-            window.print();
-            setTimeout(() => window.close(), 500);
-          }, 300);
-        </script>
-      </body>
-    </html>
-  `);
+  // Set up the print window content using DOM manipulation instead of document.write
+  printWindow.document.title = 'Receipt';
+
+  // Create style element
+  const style = printWindow.document.createElement('style');
+  style.textContent = `
+    body {
+      font-family: 'Courier New', monospace;
+      margin: 0;
+      padding: 0;
+      background-color: white;
+    }
+    .receipt-container {
+      width: 80mm;
+      margin: 0 auto;
+      padding: 5mm;
+    }
+  `;
+  printWindow.document.head.appendChild(style);
+
+  // Create container for receipt
+  const container = printWindow.document.createElement('div');
+  container.className = 'receipt-container';
+  container.innerHTML = html;
+  printWindow.document.body.appendChild(container);
+
+  // Create script for printing
+  const script = printWindow.document.createElement('script');
+  script.textContent = `
+    // Print and close after a short delay
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => window.close(), 500);
+    }, 300);
+  `;
+  printWindow.document.body.appendChild(script);
 };

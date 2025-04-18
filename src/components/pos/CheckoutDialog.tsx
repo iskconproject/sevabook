@@ -78,6 +78,9 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
       toast.success(t('pos.transactionComplete'), {
         description: t('pos.transactionSuccessful'),
       });
+
+      // Automatically generate receipt preview
+      generateReceiptPreview();
     } catch (error) {
       console.error('Error saving transaction:', error);
       toast.error(t('pos.transactionFailed'), {
@@ -195,16 +198,18 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
             <Button
               variant="outline"
               className="flex-1"
-              onClick={() => setShowReceiptPreview(false)}
+              onClick={onComplete}
             >
               <ArrowRightIcon className="mr-2 h-4 w-4" />
-              {t('pos.back')}
+              {t('pos.newSale')}
             </Button>
           </div>
         </div>
       );
     }
 
+    // This section should never be visible as we automatically show the receipt preview
+    // But keeping it as a fallback in case the preview generation fails
     return (
       <div className="space-y-6">
         <div className="rounded-full bg-primary/10 p-3 text-primary w-12 h-12 mx-auto">

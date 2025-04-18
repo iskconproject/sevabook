@@ -121,6 +121,7 @@
     "cart": "कार्ट",
     "emptyCart": "कार्ट खाली है",
     "addToCart": "कार्ट में जोड़ें",
+    "itemAdded": "आइटम कार्ट में जोड़ा गया",
     "removeFromCart": "हटाएं",
     "checkout": "चेकआउट",
     "checkoutDescription": "भुगतान विधि चुनकर अपनी बिक्री पूरी करें",
