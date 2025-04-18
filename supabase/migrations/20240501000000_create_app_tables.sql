@@ -58,6 +58,9 @@ CREATE TABLE IF NOT EXISTS public.app_settings (
   show_barcode BOOLEAN NOT NULL DEFAULT true,
   custom_message TEXT DEFAULT 'Hare Krishna! Thank you for supporting ISKCON Temple.',
   receipt_size TEXT DEFAULT '80mm',
+  printer_type TEXT DEFAULT 'browser',
+  printer_ip TEXT DEFAULT '',
+  printer_port INTEGER DEFAULT 9100,
   user_id UUID REFERENCES public.users(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
@@ -286,7 +289,10 @@ INSERT INTO public.app_settings (
   show_logo,
   show_barcode,
   custom_message,
-  receipt_size
+  receipt_size,
+  printer_type,
+  printer_ip,
+  printer_port
 ) VALUES (
   'ISKCON Temple',
   'ISKCON Temple Book Stall',
@@ -294,5 +300,8 @@ INSERT INTO public.app_settings (
   true,
   true,
   'Hare Krishna! Thank you for supporting ISKCON Temple.',
-  '80mm'
+  '80mm',
+  'browser',
+  '',
+  9100
 );

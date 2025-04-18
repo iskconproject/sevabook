@@ -156,7 +156,10 @@ export function useSettings() {
         showLogo: true,
         showBarcode: true,
         customMessage: 'Hare Krishna! Thank you for supporting ISKCON Temple.',
-        size: '80mm'
+        size: '80mm',
+        printerType: 'browser',
+        printerIp: '',
+        printerPort: 9100
       };
     }
 
@@ -166,7 +169,10 @@ export function useSettings() {
       showLogo: appSettings.show_logo,
       showBarcode: appSettings.show_barcode,
       customMessage: appSettings.custom_message || '',
-      size: appSettings.receipt_size || '80mm'
+      size: appSettings.receipt_size || '80mm',
+      printerType: appSettings.printer_type || 'browser',
+      printerIp: appSettings.printer_ip || '',
+      printerPort: appSettings.printer_port || 9100
     };
   };
 
@@ -200,7 +206,11 @@ export function useSettings() {
       receipt_footer: settings.footer,
       show_logo: settings.showLogo,
       show_barcode: settings.showBarcode,
-      custom_message: settings.customMessage
+      custom_message: settings.customMessage,
+      receipt_size: settings.size,
+      printer_type: settings.printerType,
+      printer_ip: settings.printerIp,
+      printer_port: settings.printerPort
     };
   };
 

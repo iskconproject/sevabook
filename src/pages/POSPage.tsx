@@ -19,6 +19,7 @@ interface CartItem {
   name: string;
   price: number;
   quantity: number;
+  language?: string;
 }
 
 export function POSPage() {
@@ -46,7 +47,7 @@ export function POSPage() {
           : cartItem
       ));
     } else {
-      setCart([...cart, { id: item.id, name: item.name, price: item.price, quantity: 1 }]);
+      setCart([...cart, { id: item.id, name: item.name, price: item.price, quantity: 1, language: item.language }]);
       toast.success(t('pos.itemAdded'), {
         description: item.name,
       });

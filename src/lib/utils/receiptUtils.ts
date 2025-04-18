@@ -15,6 +15,9 @@ export interface ReceiptSettings {
   showBarcode: boolean;
   customMessage: string;
   size?: '80mm' | '58mm' | '76mm';
+  printerType?: 'browser' | 'serial' | 'network';
+  printerIp?: string;
+  printerPort?: number;
 }
 
 // Sample receipt items for preview

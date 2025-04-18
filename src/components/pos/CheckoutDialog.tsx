@@ -20,6 +20,7 @@ interface CheckoutDialogProps {
     name: string;
     price: number;
     quantity: number;
+    language?: string;
   }>;
   subtotal: number;
   onComplete: () => void;
@@ -102,7 +103,7 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel, showFoote
     setShowReceiptPreview(true);
   };
 
-  const handlePrintReceipt = () => {
+  const handlePrintReceipt = async () => {
     toast.info(t('pos.printingReceipt'), {
       description: t('pos.printingReceiptDescription'),
     });
@@ -112,20 +113,25 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel, showFoote
       id: item.id,
       name: item.name,
       price: item.price,
-      quantity: item.quantity
+      quantity: item.quantity,
+      language: item.language || 'none'
     }));
 
     // Get receipt settings from the settings hook
     const receiptSettings = getReceiptSettings();
 
-    // Print receipt using thermal printer
-    printThermalReceipt(receiptItems, receiptSettings, `TR-${Date.now()}`)
-      .catch(error => {
-        console.error('Error printing receipt:', error);
-        toast.error(t('pos.printingError'), {
-          description: t('pos.printingErrorDescription'),
-        });
+    try {
+      // Print receipt using thermal printer
+      await printThermalReceipt(receiptItems, receiptSettings, `TR-${Date.now()}`);
+      toast.success(t('pos.printingSuccess'), {
+        description: t('pos.printingSuccessDescription'),
       });
+    } catch (error) {
+      console.error('Error printing receipt:', error);
+      toast.error(t('pos.printingError'), {
+        description: t('pos.printingErrorDescription'),
+      });
+    }
 
     // Complete checkout after a short delay
     setTimeout(() => {
@@ -162,7 +168,8 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel, showFoote
                 id: item.id,
                 name: item.name,
                 price: item.price,
-                quantity: item.quantity
+                quantity: item.quantity,
+                language: item.language
               }))}
             />
           </div>

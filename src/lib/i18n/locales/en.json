@@ -226,7 +226,16 @@
       "showTax": "Show Tax",
       "customMessage": "Custom Message",
       "size": "Receipt Size",
-      "sizeDescription": "Select the size of your thermal printer paper"
+      "sizeDescription": "Select the size of your thermal printer paper",
+      "printerSettings": "Printer Settings",
+      "printerType": "Printer Type",
+      "printerTypeBrowser": "Browser (Default)",
+      "printerTypeSerial": "Serial Port",
+      "printerTypeNetwork": "Network",
+      "printerTypeDescription": "Select how you want to print receipts",
+      "printerIp": "Printer IP Address",
+      "printerPort": "Printer Port",
+      "printerPortDescription": "Default port for most thermal printers is 9100"
     },
     "barcodeSettings": {
       "title": "Barcode Settings",

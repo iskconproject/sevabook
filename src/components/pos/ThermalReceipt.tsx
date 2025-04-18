@@ -85,7 +85,7 @@ export const ThermalReceipt: React.FC<ThermalReceiptProps> = ({
       {/* Barcode */}
       {settings.showBarcode && (
         <>
-          <Barcode value={transactionId} type="CODE128" align="center" />
+          <Barcode content={transactionId} type="CODE128" align="center" />
           <Text align="center" size={{ width: 1, height: 1 }}>{transactionId}</Text>
         </>
       )}
@@ -120,14 +120,15 @@ export const generateThermalReceiptPreview = async (
   } catch (error) {
     console.error('Error generating thermal receipt preview:', error);
     // Return a simple fallback receipt in case of error
-    return generateFallbackReceiptHtml(items, settings, transactionId);
+    return generateSimpleReceiptHtml(items, settings, transactionId);
   }
 };
 
 /**
  * Generate a simple HTML receipt as fallback in case the thermal receipt preview fails
+ * @deprecated Use the new generateFallbackReceiptHtml function instead
  */
-const generateFallbackReceiptHtml = (
+const generateSimpleReceiptHtml = (
   items: ReceiptItem[],
   settings: ReceiptSettings,
   transactionId: string
@@ -204,8 +205,9 @@ const generateFallbackReceiptHtml = (
 
 /**
  * Print a receipt using the browser's print functionality
+ * This is a fallback method when direct thermal printing is not available
  */
-export const printThermalReceipt = async (
+export const printReceiptViaBrowser = async (
   items: ReceiptItem[],
   settings: ReceiptSettings,
   transactionId: string = `TR-${Date.now()}`
@@ -385,3 +387,198 @@ export const printThermalReceipt = async (
     printWindow.document.body.appendChild(script);
   }
 };
+
+/**
+ * Generate ESC/POS commands for thermal printing and print via available methods
+ * This is the main function that should be used for printing receipts
+ */
+export const printThermalReceipt = async (
+  items: ReceiptItem[],
+  settings: ReceiptSettings,
+  transactionId: string = `TR-${Date.now()}`
+): Promise<void> => {
+  try {
+    // Create the receipt JSX
+    const receiptJSX = (
+      <ThermalReceipt
+        items={items}
+        settings={settings}
+        transactionId={transactionId}
+      />
+    );
+
+    // Render the receipt to ESC/POS commands (Uint8Array)
+    const data = await render(receiptJSX);
+
+    // Check printer type from settings
+    if (settings.printerType === 'network' && settings.printerIp) {
+      try {
+        // Try to print via network
+        await printViaNetwork(data, settings.printerIp, settings.printerPort || 9100);
+        return;
+      } catch (error) {
+        console.error('Error printing via network:', error);
+        // Fall back to browser printing if network printing fails
+      }
+    } else if (settings.printerType === 'serial' && 'serial' in navigator && typeof navigator.serial !== 'undefined') {
+      try {
+        // Try to print via Web Serial API
+        await printViaWebSerial(data);
+        return;
+      } catch (error) {
+        console.error('Error printing via Web Serial API:', error);
+        // Fall back to browser printing if Web Serial fails
+      }
+    }
+
+    // Fall back to browser printing
+    await printReceiptViaBrowser(items, settings, transactionId);
+  } catch (error) {
+    console.error('Error in printThermalReceipt:', error);
+    // Final fallback
+    await printReceiptViaBrowser(items, settings, transactionId);
+  }
+};
+
+/**
+ * Generate fallback receipt HTML for browser printing
+ */
+function generateFallbackReceiptHtml(
+  items: ReceiptItem[],
+  settings: ReceiptSettings,
+  transactionId: string
+): string {
+  const date = new Date().toLocaleDateString('en-IN', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const total = subtotal; // No tax or discount for now
+
+  // Generate item rows
+  const itemRows = items.map(item => {
+    const itemTotal = item.price * item.quantity;
+    const languageInfo = item.language && item.language !== 'none'
+      ? `<span style="font-size: 0.8em; font-style: italic;">(${item.language})</span>`
+      : '';
+
+    return `
+      <div style="margin-bottom: 0.5em;">
+        <div>${item.name} ${languageInfo}</div>
+        <div style="display: flex; justify-content: space-between; padding-left: 1em;">
+          <span>${item.quantity}x</span>
+          <span>₹${item.price.toFixed(2)}</span>
+          <span>₹${itemTotal.toFixed(2)}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div style="font-family: 'Courier New', monospace; font-size: 12px;">
+      <div style="text-align: center; font-weight: bold; font-size: 16px; margin-bottom: 0.5em;">${settings.header}</div>
+
+      <div style="border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; padding: 0.5em 0; margin-bottom: 0.5em;">
+        <div style="display: flex; justify-content: space-between;">
+          <span>Date:</span>
+          <span>${date}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span>Receipt #:</span>
+          <span>${transactionId}</span>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 0.5em;">
+        ${itemRows}
+      </div>
+
+      <div style="border-top: 1px solid #ccc; padding-top: 0.5em; margin-bottom: 0.5em;">
+        <div style="display: flex; justify-content: space-between;">
+          <span>Subtotal:</span>
+          <span>₹${subtotal.toFixed(2)}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-weight: bold;">
+          <span>Total:</span>
+          <span>₹${total.toFixed(2)}</span>
+        </div>
+      </div>
+
+      <div style="text-align: center; border-top: 1px solid #ccc; padding-top: 0.5em;">
+        ${settings.customMessage ? `<div style="margin-bottom: 0.5em;">${settings.customMessage}</div>` : ''}
+        <div>${settings.footer}</div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Print via Web Serial API
+ * This method uses the Web Serial API to print directly to a connected thermal printer
+ */
+async function printViaWebSerial(data: Uint8Array): Promise<void> {
+  try {
+    // Request a serial port
+    if (!navigator.serial) {
+      throw new Error('Web Serial API is not available');
+    }
+    const port = await navigator.serial.requestPort();
+
+    // Open the port with appropriate settings for thermal printers
+    await port.open({ baudRate: 9600 });
+
+    // Get a writer to send data to the printer
+    const writer = port.writable?.getWriter();
+    if (!writer) {
+      throw new Error('Could not get writer for serial port');
+    }
+
+    // Write the ESC/POS commands to the printer
+    await writer.write(data);
+
+    // Release the writer so others can use the port
+    writer.releaseLock();
+
+    // Close the port when done
+    await port.close();
+  } catch (error) {
+    console.error('Error printing via Web Serial API:', error);
+    throw error;
+  }
+}
+
+/**
+ * Print via Network
+ * This method sends ESC/POS commands to a network-connected thermal printer
+ */
+async function printViaNetwork(data: Uint8Array, ip: string, port: number = 9100): Promise<void> {
+  try {
+    // In a browser environment, we need to use a proxy server to handle the TCP connection
+    // This is because browsers cannot directly establish TCP connections for security reasons
+    const response = await fetch('/api/print', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/octet-stream',
+      },
+      body: JSON.stringify({
+        ip,
+        port,
+        data: Array.from(data), // Convert Uint8Array to regular array for JSON serialization
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Network printing failed: ${errorText}`);
+    }
+
+    return;
+  } catch (error) {
+    console.error('Error printing via network:', error);
+    throw error;
+  }
+}

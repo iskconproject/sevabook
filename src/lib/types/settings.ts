@@ -24,6 +24,9 @@ export interface AppSettings {
   show_barcode: boolean;
   custom_message?: string;
   receipt_size?: '80mm' | '58mm' | '76mm';
+  printer_type?: 'browser' | 'serial' | 'network';
+  printer_ip?: string;
+  printer_port?: number;
   user_id?: string;
   created_at: string;
   updated_at: string;

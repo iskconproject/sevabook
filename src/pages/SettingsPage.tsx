@@ -13,7 +13,7 @@ import { MoonIcon, SunIcon, LanguagesIcon, SaveIcon, RefreshCwIcon, DownloadIcon
 import { BarcodeItem } from '@/lib/utils/barcodeUtils';
 import { ReceiptSettings, sampleReceiptItems } from '@/lib/utils/receiptUtils';
 // import { printReceiptHtml } from '@/lib/utils/receiptHtmlUtils';
-import { printThermalReceipt } from '@/components/pos/ThermalReceipt';
+import { printReceiptViaBrowser } from '@/components/pos/ThermalReceipt';
 import { ThermalReceiptPreview } from '@/components/settings/ThermalReceiptPreview';
 import { BarcodePreview } from '@/components/settings/BarcodePreview';
 import { useSettings } from '@/hooks/useSettings';
@@ -38,6 +38,9 @@ export function SettingsPage() {
   const [showBarcode, setShowBarcode] = useState(true);
   const [customMessage, setCustomMessage] = useState("Hare Krishna! Thank you for supporting ISKCON Temple.");
   const [receiptSize, setReceiptSize] = useState<'80mm' | '58mm' | '76mm'>('80mm');
+  const [printerType, setPrinterType] = useState<'browser' | 'serial' | 'network'>('browser');
+  const [printerIp, setPrinterIp] = useState('');
+  const [printerPort, setPrinterPort] = useState(9100);
 
   // Barcode settings state
   const [barcodeType, setBarcodeType] = useState<'CODE128' | 'EAN13' | 'UPC'>('CODE128');
@@ -67,7 +70,10 @@ export function SettingsPage() {
     showLogo,
     showBarcode,
     customMessage,
-    size: receiptSize
+    size: receiptSize,
+    printerType,
+    printerIp,
+    printerPort
   };
 
   // Load settings from database when component mounts
@@ -81,6 +87,9 @@ export function SettingsPage() {
       setShowBarcode(dbReceiptSettings.showBarcode);
       setCustomMessage(dbReceiptSettings.customMessage);
       setReceiptSize(dbReceiptSettings.size || '80mm');
+      setPrinterType(dbReceiptSettings.printerType || 'browser');
+      setPrinterIp(dbReceiptSettings.printerIp || '');
+      setPrinterPort(dbReceiptSettings.printerPort || 9100);
 
       // Load barcode settings
       const dbBarcodeSettings = getBarcodeSettingsUI();
@@ -367,12 +376,58 @@ export function SettingsPage() {
                   </Select>
                   <p className="text-xs text-muted-foreground">{t('settings.receiptSettings.sizeDescription')}</p>
                 </div>
+
+                <div className="space-y-4 border-t pt-4 mt-4">
+                  <h4 className="font-medium">{t('settings.receiptSettings.printerSettings')}</h4>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">{t('settings.receiptSettings.printerType')}</label>
+                    <Select
+                      value={printerType}
+                      onValueChange={(value: 'browser' | 'serial' | 'network') => setPrinterType(value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="browser">{t('settings.receiptSettings.printerTypeBrowser')}</SelectItem>
+                        <SelectItem value="serial">{t('settings.receiptSettings.printerTypeSerial')}</SelectItem>
+                        <SelectItem value="network">{t('settings.receiptSettings.printerTypeNetwork')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">{t('settings.receiptSettings.printerTypeDescription')}</p>
+                  </div>
+
+                  {printerType === 'network' && (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">{t('settings.receiptSettings.printerIp')}</label>
+                        <Input
+                          value={printerIp}
+                          onChange={(e) => setPrinterIp(e.target.value)}
+                          placeholder="192.168.1.100"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">{t('settings.receiptSettings.printerPort')}</label>
+                        <Input
+                          type="number"
+                          value={printerPort}
+                          onChange={(e) => setPrinterPort(parseInt(e.target.value) || 9100)}
+                          placeholder="9100"
+                        />
+                        <p className="text-xs text-muted-foreground">{t('settings.receiptSettings.printerPortDescription')}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </CardContent>
               <CardFooter className="flex justify-between">
                 <SaveButton onClick={handleSaveReceiptSettings} />
                 <Button
                   variant="outline"
-                  onClick={() => printThermalReceipt(sampleReceiptItems, receiptSettings)}
+                  onClick={() => printReceiptViaBrowser(sampleReceiptItems, receiptSettings)}
                 >
                   <PrinterIcon className="mr-2 h-4 w-4" />
                   {t('common.print')}
