@@ -5,11 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DialogFooter } from '@/components/ui/dialog';
-import { GooglePayButton } from './GooglePayButton';
 import { toast } from 'sonner';
-import { CreditCardIcon, BanknoteIcon, SmartphoneIcon, PrinterIcon, MailIcon, CheckIcon, ArrowRightIcon } from 'lucide-react';
+import { BanknoteIcon, SmartphoneIcon, PrinterIcon, MailIcon, CheckIcon, ArrowRightIcon } from 'lucide-react';
 import { ReceiptItem, ReceiptSettings } from '@/lib/utils/receiptUtils';
 import { printThermalReceipt } from './ThermalReceipt';
+import { db } from '@/lib/supabase/client';
 
 interface CheckoutDialogProps {
   cart: Array<{
@@ -25,7 +25,7 @@ interface CheckoutDialogProps {
 
 export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: CheckoutDialogProps) {
   const { t } = useTranslation();
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'upi' | 'googlepay'>('cash');
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'upi'>('cash');
   const [cashReceived, setCashReceived] = useState('');
   const [upiId, setUpiId] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -34,29 +34,46 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
   // Calculate change due for cash payments
   const changeDue = cashReceived ? parseFloat(cashReceived) - subtotal : 0;
 
-  const handlePaymentComplete = () => {
+  const handlePaymentComplete = async () => {
     setIsProcessing(true);
 
-    // Simulate payment processing
-    setTimeout(() => {
+    try {
+      // Create transaction object
+      const transactionId = `TR-${Date.now()}`;
+      const transaction = {
+        id: transactionId,
+        items: cart,
+        subtotal,
+        total: subtotal,
+        payment_method: paymentMethod,
+        payment_details: paymentMethod === 'cash' ? { amount_received: parseFloat(cashReceived), change_due: changeDue } : { upi_id: upiId },
+        status: 'completed',
+        created_at: new Date().toISOString()
+      };
+
+      // Save transaction to database
+      const { error } = await db.transactions.addTransaction(transaction);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
       setIsProcessing(false);
       setIsCompleted(true);
 
       toast.success(t('pos.transactionComplete'), {
         description: t('pos.transactionSuccessful'),
       });
-    }, 1500);
+    } catch (error) {
+      console.error('Error saving transaction:', error);
+      toast.error(t('pos.transactionFailed'), {
+        description: t('pos.errorSavingTransaction'),
+      });
+      setIsProcessing(false);
+    }
   };
 
-  const handleGooglePaySuccess = (paymentData: any) => {
-    setIsCompleted(true);
-  };
-
-  const handleGooglePayError = (error: Error) => {
-    toast.error(t('pos.paymentFailed'), {
-      description: error.message,
-    });
-  };
+  // No longer needed as Google Pay is removed
 
   const handlePrintReceipt = () => {
     toast.info(t('pos.printingReceipt'), {
@@ -162,22 +179,14 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
   return (
     <div className="space-y-6">
       <Tabs defaultValue="cash" onValueChange={(value) => setPaymentMethod(value as any)}>
-        <TabsList className="grid grid-cols-4 w-full">
+        <TabsList className="grid grid-cols-2 w-full">
           <TabsTrigger value="cash">
             <BanknoteIcon className="mr-2 h-4 w-4" />
             {t('pos.cash')}
           </TabsTrigger>
-          <TabsTrigger value="card">
-            <CreditCardIcon className="mr-2 h-4 w-4" />
-            {t('pos.card')}
-          </TabsTrigger>
           <TabsTrigger value="upi">
             <SmartphoneIcon className="mr-2 h-4 w-4" />
             {t('pos.upi')}
-          </TabsTrigger>
-          <TabsTrigger value="googlepay">
-            <span className="mr-2">G</span>
-            {t('pos.googlePay')}
           </TabsTrigger>
         </TabsList>
 
@@ -215,35 +224,7 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
             <CardFooter>
               <Button
                 className="w-full"
-                disabled={parseFloat(cashReceived) < subtotal || isProcessing}
-                onClick={handlePaymentComplete}
-              >
-                {isProcessing ? t('common.loading') : t('pos.completeTransaction')}
-              </Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="card" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('pos.cardPayment')}</CardTitle>
-              <CardDescription>
-                {t('pos.cardPaymentDescription')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="rounded-md bg-muted p-8 text-center">
-                <CreditCardIcon className="mx-auto h-8 w-8 text-muted-foreground" />
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {t('pos.swipeCardPrompt')}
-                </p>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button
-                className="w-full"
-                disabled={isProcessing}
+                disabled={!cashReceived || parseFloat(cashReceived) < subtotal || isProcessing}
                 onClick={handlePaymentComplete}
               >
                 {isProcessing ? t('common.loading') : t('pos.completeTransaction')}
@@ -290,24 +271,6 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
                 {isProcessing ? t('common.loading') : t('pos.completeTransaction')}
               </Button>
             </CardFooter>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="googlepay" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('pos.googlePayPayment')}</CardTitle>
-              <CardDescription>
-                {t('pos.googlePayPaymentDescription')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <GooglePayButton
-                amount={subtotal}
-                onSuccess={handleGooglePaySuccess}
-                onError={handleGooglePayError}
-              />
-            </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
