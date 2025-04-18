@@ -298,16 +298,21 @@ export const printThermalReceipt = async (
     // Create style element
     const style = printWindow.document.createElement('style');
     style.textContent = `
+      @page {
+        size: ${settings.size || '80mm'} auto;
+        margin: 0;
+      }
       body {
         font-family: 'Courier New', monospace;
         margin: 0;
         padding: 0;
         background-color: white;
+        width: ${settings.size || '80mm'};
       }
       .receipt-container {
-        width: ${settings.size || '80mm'};
+        width: 100%;
         margin: 0 auto;
-        padding: 5mm;
+        padding: 2mm;
       }
     `;
     printWindow.document.head.appendChild(style);
@@ -338,37 +343,45 @@ export const printThermalReceipt = async (
       return;
     }
 
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Receipt</title>
-          <style>
-            body {
-              font-family: 'Courier New', monospace;
-              margin: 0;
-              padding: 0;
-              background-color: white;
-            }
-            .receipt-container {
-              width: ${settings.size || '80mm'};
-              margin: 0 auto;
-              padding: 5mm;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="receipt-container">
-            ${fallbackHtml}
-          </div>
-          <script>
-            setTimeout(() => {
-              window.print();
-              setTimeout(() => window.close(), 500);
-            }, 300);
-          </script>
-        </body>
-      </html>
-    `);
+    // Set up the print window content using DOM manipulation
+    printWindow.document.title = 'Receipt';
+
+    // Create style element
+    const style = printWindow.document.createElement('style');
+    style.textContent = `
+      @page {
+        size: ${settings.size || '80mm'} auto;
+        margin: 0;
+      }
+      body {
+        font-family: 'Courier New', monospace;
+        margin: 0;
+        padding: 0;
+        background-color: white;
+        width: ${settings.size || '80mm'};
+      }
+      .receipt-container {
+        width: 100%;
+        margin: 0 auto;
+        padding: 2mm;
+      }
+    `;
+    printWindow.document.head.appendChild(style);
+
+    // Create container for receipt
+    const container = printWindow.document.createElement('div');
+    container.className = 'receipt-container';
+    container.innerHTML = fallbackHtml;
+    printWindow.document.body.appendChild(container);
+
+    // Create script for printing
+    const script = printWindow.document.createElement('script');
+    script.textContent = `
+      setTimeout(() => {
+        window.print();
+        setTimeout(() => window.close(), 500);
+      }, 300);
+    `;
+    printWindow.document.body.appendChild(script);
   }
 };

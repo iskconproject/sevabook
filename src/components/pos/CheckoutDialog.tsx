@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSettings } from '@/hooks/useSettings';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,8 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { BanknoteIcon, SmartphoneIcon, PrinterIcon, MailIcon, CheckIcon, ArrowRightIcon, EyeIcon } from 'lucide-react';
-import { ReceiptItem, ReceiptSettings } from '@/lib/utils/receiptUtils';
-import { printThermalReceipt, generateThermalReceiptPreview } from './ThermalReceipt';
+import { ReceiptItem } from '@/lib/utils/receiptUtils';
+import { printThermalReceipt } from './ThermalReceipt';
+import { ThermalReceiptPreview } from '@/components/settings/ThermalReceiptPreview';
 import { db } from '@/lib/supabase/client';
 import { TransactionStatus } from '@/lib/types/transaction';
 
@@ -27,6 +29,7 @@ interface CheckoutDialogProps {
 
 export function CheckoutDialog({ cart, subtotal, onComplete, onCancel, showFooter = true }: CheckoutDialogProps) {
   const { t } = useTranslation();
+  const { getReceiptSettings } = useSettings();
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'upi'>('cash');
   const [cashReceived, setCashReceived] = useState('');
   const [upiId, setUpiId] = useState('');
@@ -34,7 +37,7 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel, showFoote
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [showReceiptPreview, setShowReceiptPreview] = useState(false);
-  const [receiptHtml, setReceiptHtml] = useState('');
+  // We don't need receiptHtml anymore as we're using the ThermalReceiptPreview component
 
   // Calculate change due for cash payments
   const changeDue = cashReceived ? parseFloat(cashReceived) - subtotal : 0;
@@ -94,34 +97,9 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel, showFoote
   // No longer needed as Google Pay is removed
 
   // Generate receipt preview
-  const generateReceiptPreview = async () => {
-    // Convert cart items to receipt items
-    const receiptItems: ReceiptItem[] = cart.map(item => ({
-      id: item.id,
-      name: item.name,
-      price: item.price,
-      quantity: item.quantity
-    }));
-
-    // Create receipt settings
-    const receiptSettings: ReceiptSettings = {
-      header: 'ISKCON Temple Book Stall',
-      footer: 'Thank you for your purchase! Hare Krishna!',
-      showLogo: true,
-      showBarcode: true,
-      customMessage: 'Hare Krishna! Thank you for supporting ISKCON Temple.'
-    };
-
-    try {
-      const html = await generateThermalReceiptPreview(receiptItems, receiptSettings, `PREVIEW-${Date.now()}`);
-      setReceiptHtml(html);
-      setShowReceiptPreview(true);
-    } catch (error) {
-      console.error('Error generating receipt preview:', error);
-      toast.error(t('pos.previewError'), {
-        description: t('pos.previewErrorDescription'),
-      });
-    }
+  const generateReceiptPreview = () => {
+    // Simply show the receipt preview
+    setShowReceiptPreview(true);
   };
 
   const handlePrintReceipt = () => {
@@ -137,14 +115,8 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel, showFoote
       quantity: item.quantity
     }));
 
-    // Create receipt settings
-    const receiptSettings: ReceiptSettings = {
-      header: 'ISKCON Temple Book Stall',
-      footer: 'Thank you for your purchase! Hare Krishna!',
-      showLogo: true,
-      showBarcode: true,
-      customMessage: 'Hare Krishna! Thank you for supporting ISKCON Temple.'
-    };
+    // Get receipt settings from the settings hook
+    const receiptSettings = getReceiptSettings();
 
     // Print receipt using thermal printer
     printThermalReceipt(receiptItems, receiptSettings, `TR-${Date.now()}`)
@@ -184,7 +156,15 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel, showFoote
           </div>
 
           <div className="bg-white p-4 rounded-md border max-h-[500px] overflow-auto">
-            <div dangerouslySetInnerHTML={{ __html: receiptHtml }} />
+            <ThermalReceiptPreview
+              settings={getReceiptSettings()}
+              items={cart.map(item => ({
+                id: item.id,
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity
+              }))}
+            />
           </div>
 
           <div className="flex gap-4">
