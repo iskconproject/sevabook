@@ -224,7 +224,9 @@
       "showLogo": "Show Logo",
       "showBarcode": "Show Barcode",
       "showTax": "Show Tax",
-      "customMessage": "Custom Message"
+      "customMessage": "Custom Message",
+      "size": "Receipt Size",
+      "sizeDescription": "Select the size of your thermal printer paper"
     },
     "barcodeSettings": {
       "title": "Barcode Settings",

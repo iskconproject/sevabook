@@ -218,7 +218,9 @@
       "showLogo": "लोगो दिखाएं",
       "showBarcode": "बारकोड दिखाएं",
       "showTax": "कर दिखाएं",
-      "customMessage": "कस्टम संदेश"
+      "customMessage": "कस्टम संदेश",
+      "size": "रसीद आकार",
+      "sizeDescription": "अपने थर्मल प्रिंटर पेपर का आकार चुनें"
     },
     "barcodeSettings": {
       "title": "बारकोड सेटिंग्स",

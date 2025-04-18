@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS public.app_settings (
   show_logo BOOLEAN NOT NULL DEFAULT true,
   show_barcode BOOLEAN NOT NULL DEFAULT true,
   custom_message TEXT DEFAULT 'Hare Krishna! Thank you for supporting ISKCON Temple.',
+  receipt_size TEXT DEFAULT '80mm',
   user_id UUID REFERENCES public.users(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
@@ -284,12 +285,14 @@ INSERT INTO public.app_settings (
   receipt_footer,
   show_logo,
   show_barcode,
-  custom_message
+  custom_message,
+  receipt_size
 ) VALUES (
   'ISKCON Temple',
   'ISKCON Temple Book Stall',
   'Thank you for your purchase! Hare Krishna!',
   true,
   true,
-  'Hare Krishna! Thank you for supporting ISKCON Temple.'
+  'Hare Krishna! Thank you for supporting ISKCON Temple.',
+  '80mm'
 );

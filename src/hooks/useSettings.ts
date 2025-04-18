@@ -155,7 +155,8 @@ export function useSettings() {
         footer: 'Thank you for your purchase! Hare Krishna!',
         showLogo: true,
         showBarcode: true,
-        customMessage: 'Hare Krishna! Thank you for supporting ISKCON Temple.'
+        customMessage: 'Hare Krishna! Thank you for supporting ISKCON Temple.',
+        size: '80mm'
       };
     }
 
@@ -164,7 +165,8 @@ export function useSettings() {
       footer: appSettings.receipt_footer,
       showLogo: appSettings.show_logo,
       showBarcode: appSettings.show_barcode,
-      customMessage: appSettings.custom_message || ''
+      customMessage: appSettings.custom_message || '',
+      size: appSettings.receipt_size || '80mm'
     };
   };
 

@@ -218,7 +218,9 @@
       "showLogo": "লোগো দেখান",
       "showBarcode": "বারকোড দেখান",
       "showTax": "কর দেখান",
-      "customMessage": "কাস্টম বার্তা"
+      "customMessage": "কাস্টম বার্তা",
+      "size": "রসিদ আকার",
+      "sizeDescription": "আপনার থার্মাল প্রিন্টার পেপারের আকার নির্বাচন করুন"
     },
     "barcodeSettings": {
       "title": "বারকোড সেটিংস",

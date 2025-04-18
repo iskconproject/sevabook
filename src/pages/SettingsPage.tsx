@@ -37,6 +37,7 @@ export function SettingsPage() {
   const [showLogo, setShowLogo] = useState(true);
   const [showBarcode, setShowBarcode] = useState(true);
   const [customMessage, setCustomMessage] = useState("Hare Krishna! Thank you for supporting ISKCON Temple.");
+  const [receiptSize, setReceiptSize] = useState<'80mm' | '58mm' | '76mm'>('80mm');
 
   // Barcode settings state
   const [barcodeType, setBarcodeType] = useState<'CODE128' | 'EAN13' | 'UPC'>('CODE128');
@@ -65,7 +66,8 @@ export function SettingsPage() {
     footer: receiptFooter,
     showLogo,
     showBarcode,
-    customMessage
+    customMessage,
+    size: receiptSize
   };
 
   // Load settings from database when component mounts
@@ -78,6 +80,7 @@ export function SettingsPage() {
       setShowLogo(dbReceiptSettings.showLogo);
       setShowBarcode(dbReceiptSettings.showBarcode);
       setCustomMessage(dbReceiptSettings.customMessage);
+      setReceiptSize(dbReceiptSettings.size || '80mm');
 
       // Load barcode settings
       const dbBarcodeSettings = getBarcodeSettingsUI();
@@ -97,7 +100,8 @@ export function SettingsPage() {
       footer: receiptFooter,
       showLogo,
       showBarcode,
-      customMessage
+      customMessage,
+      size: receiptSize
     };
     const result = await saveReceiptSettings(settings);
 
@@ -344,6 +348,24 @@ export function SettingsPage() {
                     value={customMessage}
                     onChange={(e) => setCustomMessage(e.target.value)}
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">{t('settings.receiptSettings.size')}</label>
+                  <Select
+                    value={receiptSize}
+                    onValueChange={(value: '80mm' | '58mm' | '76mm') => setReceiptSize(value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="80mm">80mm (Standard)</SelectItem>
+                      <SelectItem value="58mm">58mm (Compact)</SelectItem>
+                      <SelectItem value="76mm">76mm (Medium)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">{t('settings.receiptSettings.sizeDescription')}</p>
                 </div>
               </CardContent>
               <CardFooter className="flex justify-between">

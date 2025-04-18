@@ -14,6 +14,7 @@ export interface ReceiptSettings {
   showLogo: boolean;
   showBarcode: boolean;
   customMessage: string;
+  size?: '80mm' | '58mm' | '76mm';
 }
 
 // Sample receipt items for preview

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { ReceiptItem, ReceiptSettings } from '@/lib/utils/receiptUtils';
 import JsBarcode from 'jsbarcode';
 
@@ -121,11 +121,24 @@ export function ThermalReceiptPreview({
     }
   }, [settings.showBarcode, receiptRef.current]);
 
+  // Determine the width class based on the receipt size
+  const getWidthClass = () => {
+    switch (settings.size) {
+      case '58mm':
+        return 'w-[58mm]';
+      case '76mm':
+        return 'w-[76mm]';
+      case '80mm':
+      default:
+        return 'w-[80mm]';
+    }
+  };
+
   return (
     <div className="thermal-receipt-preview-container border rounded-md p-4 max-w-full overflow-auto bg-white">
       <div
         ref={receiptRef}
-        className="thermal-receipt-preview w-[80mm] mx-auto"
+        className={`thermal-receipt-preview ${getWidthClass()} mx-auto`}
         dangerouslySetInnerHTML={{ __html: generateReceiptHtml() }}
       />
     </div>

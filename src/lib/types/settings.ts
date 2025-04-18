@@ -23,6 +23,7 @@ export interface AppSettings {
   show_logo: boolean;
   show_barcode: boolean;
   custom_message?: string;
+  receipt_size?: '80mm' | '58mm' | '76mm';
   user_id?: string;
   created_at: string;
   updated_at: string;
