@@ -5,32 +5,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { PlusIcon, SearchIcon, EditIcon, TrashIcon, FilterIcon, XIcon } from 'lucide-react';
+import { PlusIcon, SearchIcon, EditIcon, TrashIcon, FilterIcon, XIcon, Loader2Icon } from 'lucide-react';
 import { InventoryForm } from '@/components/inventory/InventoryForm';
+import { useInventory } from '@/hooks/useInventory';
+import { InventoryItem } from '@/lib/types/inventory';
 
-// Mock inventory data
-const mockInventory = [
-  { id: '1', name: 'Bhagavad Gita As It Is', category: 'books', language: 'english', price: '₹250', stock: 45 },
-  { id: '2', name: 'Bhagavad Gita As It Is', category: 'books', language: 'bengali', price: '₹220', stock: 32 },
-  { id: '3', name: 'Bhagavad Gita As It Is', category: 'books', language: 'hindi', price: '₹230', stock: 28 },
-  { id: '4', name: 'Sri Chaitanya Charitamrita', category: 'books', language: 'english', price: '₹450', stock: 15 },
-  { id: '5', name: 'Incense Sticks (Sandalwood)', category: 'incense', language: 'none', price: '₹50', stock: 120 },
-  { id: '6', name: 'Deity Dress (Small)', category: 'clothing', language: 'none', price: '₹350', stock: 8 },
-  { id: '7', name: 'Japa Mala', category: 'puja', language: 'none', price: '₹180', stock: 25 },
-  { id: '8', name: 'Krishna Murti (Brass, 8")', category: 'deities', language: 'none', price: '₹1200', stock: 5 },
-];
+
 
 export function InventoryPage() {
   const { t } = useTranslation();
+  const { inventory, loading, error, addInventoryItem, updateInventoryItem, deleteInventoryItem } = useInventory();
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<typeof mockInventory[0] | null>(null);
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -41,12 +34,12 @@ export function InventoryPage() {
   });
 
   // Filter inventory based on search query and filters
-  const filteredInventory = mockInventory.filter(item => {
+  const filteredInventory = inventory.filter(item => {
     // Search query filter
     const matchesSearch =
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.language.toLowerCase().includes(searchQuery.toLowerCase());
+      (item.language && item.language.toLowerCase().includes(searchQuery.toLowerCase()));
 
     // Category filter
     const matchesCategory = filters.categories.length === 0 ||
@@ -54,7 +47,7 @@ export function InventoryPage() {
 
     // Language filter
     const matchesLanguage = filters.languages.length === 0 ||
-      filters.languages.includes(item.language);
+      (item.language && filters.languages.includes(item.language));
 
     // Stock level filter
     const matchesStockLevel =
@@ -65,20 +58,56 @@ export function InventoryPage() {
     return matchesSearch && matchesCategory && matchesLanguage && matchesStockLevel;
   });
 
-  const handleAddItem = (values: any) => {
-    // In a real app, this would call an API to add the item
-    toast.success(t('inventory.itemAdded'), {
-      description: values.name,
-    });
-    setIsAddDialogOpen(false);
+  const handleAddItem = async (values: any) => {
+    // Convert form values to inventory item format
+    const newItem = {
+      name: values.name,
+      category: values.category,
+      language: values.language || 'none',
+      price: parseFloat(values.price),
+      stock: parseInt(values.stock),
+      description: values.description || ''
+    };
+
+    const result = await addInventoryItem(newItem);
+
+    if (result.success) {
+      toast.success(t('inventory.itemAdded'), {
+        description: values.name,
+      });
+      setIsAddDialogOpen(false);
+    } else {
+      toast.error(t('errors.addItemFailed'), {
+        description: result.error,
+      });
+    }
   };
 
-  const handleEditItem = (values: any) => {
-    // In a real app, this would call an API to update the item
-    toast.success(t('inventory.itemUpdated'), {
-      description: values.name,
-    });
-    setEditingItem(null);
+  const handleEditItem = async (values: any) => {
+    if (!editingItem) return;
+
+    // Convert form values to inventory item format
+    const updates = {
+      name: values.name,
+      category: values.category,
+      language: values.language || 'none',
+      price: parseFloat(values.price),
+      stock: parseInt(values.stock),
+      description: values.description || ''
+    };
+
+    const result = await updateInventoryItem(editingItem.id, updates);
+
+    if (result.success) {
+      toast.success(t('inventory.itemUpdated'), {
+        description: values.name,
+      });
+      setEditingItem(null);
+    } else {
+      toast.error(t('errors.updateItemFailed'), {
+        description: result.error,
+      });
+    }
   };
 
   const openDeleteDialog = (itemId: string) => {
@@ -86,18 +115,28 @@ export function InventoryPage() {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleDeleteItem = () => {
+  const handleDeleteItem = async () => {
     if (deletingItemId) {
-      // In a real app, this would call an API to delete the item
-      toast.success(t('inventory.itemDeleted'), {
-        description: mockInventory.find(item => item.id === deletingItemId)?.name,
-      });
+      const itemName = inventory.find(item => item.id === deletingItemId)?.name;
+
+      const result = await deleteInventoryItem(deletingItemId);
+
+      if (result.success) {
+        toast.success(t('inventory.itemDeleted'), {
+          description: itemName,
+        });
+      } else {
+        toast.error(t('errors.deleteItemFailed'), {
+          description: result.error,
+        });
+      }
+
       setIsDeleteDialogOpen(false);
       setDeletingItemId(null);
     }
   };
 
-  const openEditDialog = (item: typeof mockInventory[0]) => {
+  const openEditDialog = (item: InventoryItem) => {
     setEditingItem(item);
   };
 
@@ -142,7 +181,7 @@ export function InventoryPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{t('inventory.title')}</h1>
           <p className="text-muted-foreground">
-            {t('inventory.title')} - {filteredInventory.length} {t('dashboard.totalItems')}
+            {t('inventory.title')} - {loading ? '...' : filteredInventory.length} {t('dashboard.totalItems')}
           </p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -178,7 +217,15 @@ export function InventoryPage() {
           </DialogHeader>
           {editingItem && (
             <InventoryForm
-              initialData={editingItem}
+              initialData={{
+                id: editingItem.id,
+                name: editingItem.name,
+                category: editingItem.category,
+                language: editingItem.language,
+                price: editingItem.price.toString(),
+                stock: editingItem.stock,
+                description: editingItem.description
+              }}
               onSubmit={handleEditItem}
               onCancel={() => setEditingItem(null)}
             />
@@ -344,7 +391,22 @@ export function InventoryPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredInventory.length === 0 ? (
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="h-24 text-center">
+                      <div className="flex justify-center items-center">
+                        <Loader2Icon className="h-6 w-6 animate-spin mr-2" />
+                        {t('common.loading')}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : error ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="h-24 text-center text-destructive">
+                      {t('errors.loadingFailed')}: {error.message}
+                    </TableCell>
+                  </TableRow>
+                ) : filteredInventory.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="h-24 text-center">
                       {t('common.noResults')}
@@ -360,7 +422,7 @@ export function InventoryPage() {
                       <TableCell>
                         {item.language && item.language !== 'none' ? t(`inventory.languages.${item.language}`) : '-'}
                       </TableCell>
-                      <TableCell>{item.price}</TableCell>
+                      <TableCell>₹{item.price}</TableCell>
                       <TableCell>
                         <span className={item.stock < 10 ? 'text-destructive' : ''}>
                           {item.stock}
@@ -391,7 +453,7 @@ export function InventoryPage() {
         </CardContent>
         <CardFooter className="flex justify-between">
           <div className="text-sm text-muted-foreground">
-            {t('dashboard.totalItems')}: {filteredInventory.length}
+            {t('dashboard.totalItems')}: {loading ? '...' : filteredInventory.length}
           </div>
         </CardFooter>
       </Card>

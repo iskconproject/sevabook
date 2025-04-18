@@ -7,24 +7,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PrinterIcon, SearchIcon, CheckIcon } from 'lucide-react';
+import { PrinterIcon, SearchIcon, CheckIcon, Loader2Icon } from 'lucide-react';
 import { BarcodeItem, BarcodeSettings, printBarcodes } from '@/lib/utils/barcodeUtils';
 import { BarcodePreview } from '@/components/settings/BarcodePreview';
+import { useInventory } from '@/hooks/useInventory';
+import { InventoryItem } from '@/lib/types/inventory';
 
-// Mock inventory data
-const mockInventory = [
-  { id: '1', name: 'Bhagavad Gita As It Is', category: 'books', language: 'english', price: '₹250', stock: 45 },
-  { id: '2', name: 'Bhagavad Gita As It Is', category: 'books', language: 'bengali', price: '₹220', stock: 32 },
-  { id: '3', name: 'Bhagavad Gita As It Is', category: 'books', language: 'hindi', price: '₹230', stock: 28 },
-  { id: '4', name: 'Sri Chaitanya Charitamrita', category: 'books', language: 'english', price: '₹450', stock: 15 },
-  { id: '5', name: 'Incense Sticks (Sandalwood)', category: 'incense', language: 'none', price: '₹50', stock: 120 },
-  { id: '6', name: 'Deity Dress (Small)', category: 'clothing', language: 'none', price: '₹350', stock: 8 },
-  { id: '7', name: 'Japa Mala', category: 'puja', language: 'none', price: '₹180', stock: 25 },
-  { id: '8', name: 'Krishna Murti (Brass, 8")', category: 'deities', language: 'none', price: '₹1200', stock: 5 },
-];
+
 
 export function BarcodePage() {
   const { t } = useTranslation();
+  const { inventory, loading, error } = useInventory();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [barcodeType, setBarcodeType] = useState<'CODE128' | 'EAN13' | 'UPC'>('CODE128');
@@ -34,13 +27,13 @@ export function BarcodePage() {
   const [includeLanguage, setIncludeLanguage] = useState<boolean>(true);
   const [customHeading, setCustomHeading] = useState<string>('ISKCON Temple');
   const [quantity, setQuantity] = useState<number>(1);
-  const [previewItem, setPreviewItem] = useState<typeof mockInventory[0] | null>(null);
+  const [previewItem, setPreviewItem] = useState<InventoryItem | null>(null);
 
   // Filter inventory based on search query
-  const filteredInventory = mockInventory.filter(item =>
+  const filteredInventory = inventory.filter(item =>
     item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     item.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.language.toLowerCase().includes(searchQuery.toLowerCase())
+    (item.language && item.language.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   // Toggle item selection
@@ -53,18 +46,18 @@ export function BarcodePage() {
   };
 
   // Preview barcode for an item
-  const previewBarcode = (item: typeof mockInventory[0]) => {
+  const previewBarcode = (item: InventoryItem) => {
     setPreviewItem(item);
   };
 
   // Print selected barcodes
   const printSelectedBarcodes = () => {
     const items: BarcodeItem[] = selectedItems.map(id => {
-      const item = mockInventory.find(i => i.id === id)!;
+      const item = inventory.find(i => i.id === id)!;
       return {
         id: item.id,
         name: item.name,
-        price: item.price,
+        price: `₹${item.price}`,
         language: item.language,
         category: item.category
       };
@@ -148,7 +141,22 @@ export function BarcodePage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredInventory.length === 0 ? (
+                    {loading ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="h-24 text-center">
+                          <div className="flex justify-center items-center">
+                            <Loader2Icon className="h-6 w-6 animate-spin mr-2" />
+                            {t('common.loading')}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : error ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="h-24 text-center text-destructive">
+                          {t('errors.loadingFailed')}: {error.message}
+                        </TableCell>
+                      </TableRow>
+                    ) : filteredInventory.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={6} className="h-24 text-center">
                           {t('common.noResults')}
@@ -172,7 +180,7 @@ export function BarcodePage() {
                           <TableCell>
                             {item.language && item.language !== 'none' ? t(`inventory.languages.${item.language}`) : '-'}
                           </TableCell>
-                          <TableCell>{item.price}</TableCell>
+                          <TableCell>₹{item.price}</TableCell>
                           <TableCell className="text-right">
                             <Button
                               variant="ghost"
@@ -217,7 +225,7 @@ export function BarcodePage() {
                     item={{
                       id: previewItem.id,
                       name: previewItem.name,
-                      price: previewItem.price,
+                      price: `₹${previewItem.price}`,
                       language: previewItem.language,
                       category: previewItem.category
                     }}
@@ -239,7 +247,7 @@ export function BarcodePage() {
                     const item: BarcodeItem = {
                       id: previewItem.id,
                       name: previewItem.name,
-                      price: previewItem.price,
+                      price: `₹${previewItem.price}`,
                       language: previewItem.language,
                       category: previewItem.category
                     };
@@ -374,10 +382,10 @@ export function BarcodePage() {
                 className="w-full"
                 onClick={() => {
                   // Get all inventory items
-                  const items: BarcodeItem[] = mockInventory.map(item => ({
+                  const items: BarcodeItem[] = inventory.map(item => ({
                     id: item.id,
                     name: item.name,
-                    price: item.price,
+                    price: `₹${item.price}`,
                     language: item.language,
                     category: item.category
                   }));

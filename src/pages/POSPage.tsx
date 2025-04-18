@@ -7,20 +7,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { PlusIcon, MinusIcon, SearchIcon, ShoppingCartIcon, BarcodeIcon, CreditCardIcon, TrashIcon } from 'lucide-react';
+import { PlusIcon, MinusIcon, SearchIcon, ShoppingCartIcon, BarcodeIcon, CreditCardIcon, TrashIcon, Loader2Icon } from 'lucide-react';
 import { CheckoutDialog } from '@/components/pos/CheckoutDialog';
+import { useInventory } from '@/hooks/useInventory';
+import { InventoryItem } from '@/lib/types/inventory';
 
-// Mock inventory data
-const mockInventory = [
-  { id: '1', name: 'Bhagavad Gita As It Is', category: 'books', language: 'english', price: 250, stock: 45 },
-  { id: '2', name: 'Bhagavad Gita As It Is', category: 'books', language: 'bengali', price: 220, stock: 32 },
-  { id: '3', name: 'Bhagavad Gita As It Is', category: 'books', language: 'hindi', price: 230, stock: 28 },
-  { id: '4', name: 'Sri Chaitanya Charitamrita', category: 'books', language: 'english', price: 450, stock: 15 },
-  { id: '5', name: 'Incense Sticks (Sandalwood)', category: 'incense', language: 'none', price: 50, stock: 120 },
-  { id: '6', name: 'Deity Dress (Small)', category: 'clothing', language: 'none', price: 350, stock: 8 },
-  { id: '7', name: 'Japa Mala', category: 'puja', language: 'none', price: 180, stock: 25 },
-  { id: '8', name: 'Krishna Murti (Brass, 8")', category: 'deities', language: 'none', price: 1200, stock: 5 },
-];
+
 
 interface CartItem {
   id: string;
@@ -31,19 +23,20 @@ interface CartItem {
 
 export function POSPage() {
   const { t } = useTranslation();
+  const { inventory, loading, error } = useInventory();
   const [searchQuery, setSearchQuery] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   // Filter inventory based on search query
-  const filteredInventory = mockInventory.filter(item =>
+  const filteredInventory = inventory.filter(item =>
     item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     item.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.language.toLowerCase().includes(searchQuery.toLowerCase())
+    (item.language && item.language.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   // Add item to cart
-  const addToCart = (item: typeof mockInventory[0]) => {
+  const addToCart = (item: InventoryItem) => {
     const existingItem = cart.find(cartItem => cartItem.id === item.id);
 
     if (existingItem) {
@@ -144,29 +137,18 @@ export function POSPage() {
                 </TabsList>
 
                 <TabsContent value="all" className="m-0">
-                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                    {filteredInventory.map((item) => (
-                      <Button
-                        key={item.id}
-                        variant="outline"
-                        className="h-auto flex-col items-start p-3 text-left w-full"
-                        onClick={() => addToCart(item)}
-                      >
-                        <div className="font-medium truncate w-full">{item.name}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {item.language && item.language !== 'none' && `${t(`inventory.languages.${item.language}`)} - `}
-                          ₹{item.price}
-                        </div>
-                      </Button>
-                    ))}
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="books" className="m-0">
-                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                    {filteredInventory
-                      .filter(item => item.category === 'books')
-                      .map((item) => (
+                  {loading ? (
+                    <div className="flex justify-center items-center h-40">
+                      <Loader2Icon className="h-6 w-6 animate-spin mr-2" />
+                      {t('common.loading')}
+                    </div>
+                  ) : error ? (
+                    <div className="text-center text-destructive p-4">
+                      {t('errors.loadingFailed')}: {error.message}
+                    </div>
+                  ) : (
+                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                      {filteredInventory.map((item) => (
                         <Button
                           key={item.id}
                           variant="outline"
@@ -180,7 +162,40 @@ export function POSPage() {
                           </div>
                         </Button>
                       ))}
-                  </div>
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="books" className="m-0">
+                  {loading ? (
+                    <div className="flex justify-center items-center h-40">
+                      <Loader2Icon className="h-6 w-6 animate-spin mr-2" />
+                      {t('common.loading')}
+                    </div>
+                  ) : error ? (
+                    <div className="text-center text-destructive p-4">
+                      {t('errors.loadingFailed')}: {error.message}
+                    </div>
+                  ) : (
+                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                      {filteredInventory
+                        .filter(item => item.category === 'books')
+                        .map((item) => (
+                          <Button
+                            key={item.id}
+                            variant="outline"
+                            className="h-auto flex-col items-start p-3 text-left w-full"
+                            onClick={() => addToCart(item)}
+                          >
+                            <div className="font-medium truncate w-full">{item.name}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {item.language && item.language !== 'none' && `${t(`inventory.languages.${item.language}`)} - `}
+                              ₹{item.price}
+                            </div>
+                          </Button>
+                        ))}
+                    </div>
+                  )}
                 </TabsContent>
 
                 {/* Other tabs would be similar */}
@@ -241,7 +256,10 @@ export function POSPage() {
                                 variant="outline"
                                 size="icon"
                                 className="h-6 w-6"
-                                onClick={() => addToCart(mockInventory.find(i => i.id === item.id)!)}
+                                onClick={() => {
+                                  const inventoryItem = inventory.find(i => i.id === item.id);
+                                  if (inventoryItem) addToCart(inventoryItem);
+                                }}
                               >
                                 <PlusIcon className="h-3 w-3" />
                               </Button>
