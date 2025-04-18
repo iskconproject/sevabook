@@ -91,12 +91,12 @@ export const db = {
     createUserIfNotExists: async (profile: any) => {
       // First check if user exists
       const { data } = await supabase.from('users').select('*').eq('id', profile.id).single();
-      
+
       // If user doesn't exist, create them
       if (!data) {
         return await supabase.from('users').insert(profile);
       }
-      
+
       return { data, error: null };
     }
   }
