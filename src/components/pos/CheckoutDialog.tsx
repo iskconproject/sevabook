@@ -6,10 +6,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { BanknoteIcon, SmartphoneIcon, PrinterIcon, MailIcon, CheckIcon, ArrowRightIcon } from 'lucide-react';
+import { BanknoteIcon, SmartphoneIcon, PrinterIcon, MailIcon, CheckIcon, ArrowRightIcon, EyeIcon } from 'lucide-react';
 import { ReceiptItem, ReceiptSettings } from '@/lib/utils/receiptUtils';
-import { printThermalReceipt } from './ThermalReceipt';
+import { printThermalReceipt, generateThermalReceiptPreview } from './ThermalReceipt';
 import { db } from '@/lib/supabase/client';
+import { TransactionStatus } from '@/lib/types/transaction';
 
 interface CheckoutDialogProps {
   cart: Array<{
@@ -28,8 +29,11 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'upi'>('cash');
   const [cashReceived, setCashReceived] = useState('');
   const [upiId, setUpiId] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [showReceiptPreview, setShowReceiptPreview] = useState(false);
+  const [receiptHtml, setReceiptHtml] = useState('');
 
   // Calculate change due for cash payments
   const changeDue = cashReceived ? parseFloat(cashReceived) - subtotal : 0;
@@ -38,21 +42,31 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
     setIsProcessing(true);
 
     try {
+      // Get current user session
+      const { data: { session } } = await db.auth.getSession();
+      const userId = session?.user?.id;
+
       // Create transaction object
-      const transactionId = `TR-${Date.now()}`;
       const transaction = {
-        id: transactionId,
-        items: cart,
-        subtotal,
         total: subtotal,
         payment_method: paymentMethod,
-        payment_details: paymentMethod === 'cash' ? { amount_received: parseFloat(cashReceived), change_due: changeDue } : { upi_id: upiId },
-        status: 'completed',
-        created_at: new Date().toISOString()
+        payment_details: paymentMethod === 'cash'
+          ? { amount_received: parseFloat(cashReceived), change_due: changeDue }
+          : { upi_id: upiId },
+        customer_phone: customerPhone,
+        status: 'completed' as TransactionStatus,
+        user_id: userId || ''
       };
 
+      // Create transaction items
+      const items = cart.map(item => ({
+        inventory_id: item.id,
+        quantity: item.quantity,
+        price: item.price
+      }));
+
       // Save transaction to database
-      const { error } = await db.transactions.addTransaction(transaction);
+      const { error } = await db.transactions.addTransaction(transaction, items);
 
       if (error) {
         throw new Error(error.message);
@@ -74,6 +88,37 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
   };
 
   // No longer needed as Google Pay is removed
+
+  // Generate receipt preview
+  const generateReceiptPreview = async () => {
+    // Convert cart items to receipt items
+    const receiptItems: ReceiptItem[] = cart.map(item => ({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity
+    }));
+
+    // Create receipt settings
+    const receiptSettings: ReceiptSettings = {
+      header: 'ISKCON Temple Book Stall',
+      footer: 'Thank you for your purchase! Hare Krishna!',
+      showLogo: true,
+      showBarcode: true,
+      customMessage: 'Hare Krishna! Thank you for supporting ISKCON Temple.'
+    };
+
+    try {
+      const html = await generateThermalReceiptPreview(receiptItems, receiptSettings, `PREVIEW-${Date.now()}`);
+      setReceiptHtml(html);
+      setShowReceiptPreview(true);
+    } catch (error) {
+      console.error('Error generating receipt preview:', error);
+      toast.error(t('pos.previewError'), {
+        description: t('pos.previewErrorDescription'),
+      });
+    }
+  };
 
   const handlePrintReceipt = () => {
     toast.info(t('pos.printingReceipt'), {
@@ -124,6 +169,42 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
   };
 
   if (isCompleted) {
+    if (showReceiptPreview) {
+      return (
+        <div className="space-y-6">
+          <div className="text-center space-y-2">
+            <h2 className="text-2xl font-bold">{t('pos.receiptPreview')}</h2>
+            <p className="text-muted-foreground">
+              {t('pos.receiptPreviewDescription')}
+            </p>
+          </div>
+
+          <div className="bg-white p-4 rounded-md border max-h-[500px] overflow-auto">
+            <div dangerouslySetInnerHTML={{ __html: receiptHtml }} />
+          </div>
+
+          <div className="flex gap-4">
+            <Button
+              className="flex-1"
+              onClick={handlePrintReceipt}
+            >
+              <PrinterIcon className="mr-2 h-4 w-4" />
+              {t('pos.printReceipt')}
+            </Button>
+
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setShowReceiptPreview(false)}
+            >
+              <ArrowRightIcon className="mr-2 h-4 w-4" />
+              {t('pos.back')}
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="space-y-6">
         <div className="rounded-full bg-primary/10 p-3 text-primary w-12 h-12 mx-auto">
@@ -145,6 +226,14 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <Button
+              className="w-full"
+              onClick={generateReceiptPreview}
+            >
+              <EyeIcon className="mr-2 h-4 w-4" />
+              {t('pos.previewReceipt')}
+            </Button>
+
             <Button
               className="w-full"
               onClick={handlePrintReceipt}
@@ -274,6 +363,27 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
           </Card>
         </TabsContent>
       </Tabs>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('pos.customerInfo')}</CardTitle>
+          <CardDescription>
+            {t('pos.customerInfoDescription')}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">
+              {t('pos.customerPhone')}
+            </label>
+            <Input
+              placeholder="+91 XXXXX XXXXX"
+              value={customerPhone}
+              onChange={(e) => setCustomerPhone(e.target.value)}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="space-y-2">
         <div className="flex justify-between text-sm">

@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS public.transactions (
   total NUMERIC(10, 2) NOT NULL,
   payment_method TEXT NOT NULL CHECK (payment_method IN ('cash', 'upi', 'card')),
   payment_details JSONB,
+  customer_phone TEXT,
   status TEXT NOT NULL CHECK (status IN ('pending', 'completed', 'cancelled')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
@@ -179,15 +180,15 @@ BEGIN
   IF NEW.status = 'completed' THEN
     -- Update inventory stock for each item in the transaction
     UPDATE public.inventory
-    SET 
+    SET
       stock = stock - ti.quantity,
       updated_at = now()
     FROM public.transaction_items ti
-    WHERE 
+    WHERE
       inventory.id = ti.inventory_id AND
       ti.transaction_id = NEW.id;
   END IF;
-  
+
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -261,34 +262,34 @@ CREATE TRIGGER update_app_settings_timestamp
 
 -- Insert default barcode settings
 INSERT INTO public.barcode_settings (
-  type, 
-  size, 
-  include_price, 
-  include_title, 
-  include_language, 
+  type,
+  size,
+  include_price,
+  include_title,
+  include_language,
   custom_heading
 ) VALUES (
-  'CODE128', 
-  '50x25', 
-  true, 
-  true, 
-  true, 
+  'CODE128',
+  '50x25',
+  true,
+  true,
+  true,
   'ISKCON Temple'
 );
 
 -- Insert default app settings
 INSERT INTO public.app_settings (
-  temple_name, 
-  receipt_header, 
-  receipt_footer, 
-  show_logo, 
-  show_barcode, 
+  temple_name,
+  receipt_header,
+  receipt_footer,
+  show_logo,
+  show_barcode,
   custom_message
 ) VALUES (
-  'ISKCON Temple', 
-  'ISKCON Temple Book Stall', 
-  'Thank you for your purchase! Hare Krishna!', 
-  true, 
-  true, 
+  'ISKCON Temple',
+  'ISKCON Temple Book Stall',
+  'Thank you for your purchase! Hare Krishna!',
+  true,
+  true,
   'Hare Krishna! Thank you for supporting ISKCON Temple.'
 );

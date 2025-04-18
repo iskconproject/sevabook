@@ -157,7 +157,16 @@
     "transactionSuccessful": "Your transaction has been completed successfully",
     "transactionFailed": "Transaction Failed",
     "errorSavingTransaction": "There was an error saving the transaction",
-    "startNewSale": "Start New Sale"
+    "startNewSale": "Start New Sale",
+    "customerInfo": "Customer Information",
+    "customerInfoDescription": "Add customer details for the receipt",
+    "customerPhone": "Customer Phone Number",
+    "previewReceipt": "Preview Receipt",
+    "receiptPreview": "Receipt Preview",
+    "receiptPreviewDescription": "This is how your receipt will look when printed",
+    "previewError": "Preview Error",
+    "previewErrorDescription": "There was an error generating the receipt preview",
+    "back": "Back"
   },
   "reports": {
     "title": "Reports",

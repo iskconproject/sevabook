@@ -6,6 +6,7 @@ export interface Transaction {
   total: number;
   payment_method: PaymentMethod;
   payment_details: PaymentDetails;
+  customer_phone?: string;
   status: TransactionStatus;
   created_at: string;
   updated_at: string;
