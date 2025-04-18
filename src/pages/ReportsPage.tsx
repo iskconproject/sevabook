@@ -9,6 +9,7 @@ import { DownloadIcon, FilterIcon, PrinterIcon, BarChart3Icon, PieChartIcon, Lin
 import { useReports } from '@/hooks/useReports';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { downloadCSV, formatDateForFilename } from '@/lib/utils/exportUtils';
 
 
 
@@ -72,6 +73,78 @@ export function ReportsPage() {
       console.error('Error applying filter:', err);
       toast.error(t('errors.fetchFailed'), {
         description: t('reports.filterError')
+      });
+    }
+  };
+
+  // Handle export button click
+  const handleExport = () => {
+    try {
+      const dateStr = formatDateForFilename();
+
+      if (activeTab === 'sales') {
+        if (salesData.length === 0) {
+          toast.error(t('reports.noDataToExport'));
+          return;
+        }
+
+        // Prepare sales data for export
+        const exportData = salesData.map(sale => ({
+          date: format(new Date(sale.created_at), 'yyyy-MM-dd'),
+          items: sale.items_count,
+          payment_method: t(`pos.${sale.payment_method}`),
+          amount: sale.total
+        }));
+
+        // Define headers for CSV
+        const headers = [
+          t('reports.date'),
+          t('inventory.title'),
+          t('pos.paymentMethod'),
+          t('pos.amount')
+        ];
+
+        // Download CSV
+        downloadCSV(exportData, `sales-report-${dateStr}.csv`, headers);
+
+        toast.success(t('reports.exportSuccess'), {
+          description: t('reports.salesExportDescription')
+        });
+      } else {
+        if (inventoryData.length === 0) {
+          toast.error(t('reports.noDataToExport'));
+          return;
+        }
+
+        // Prepare inventory data for export
+        const exportData = inventoryData.map(item => ({
+          name: item.name + (item.language && item.language !== 'none' ? ` (${t(`inventory.languages.${item.language}`)})` : ''),
+          category: t(`inventory.categories.${item.category}`),
+          stock: item.stock,
+          sold: item.sold,
+          price: item.price
+        }));
+
+        // Define headers for CSV
+        const headers = [
+          t('inventory.name'),
+          t('inventory.category'),
+          t('inventory.stock'),
+          t('reports.sold'),
+          t('inventory.price')
+        ];
+
+        // Download CSV
+        downloadCSV(exportData, `inventory-report-${dateStr}.csv`, headers);
+
+        toast.success(t('reports.exportSuccess'), {
+          description: t('reports.inventoryExportDescription')
+        });
+      }
+    } catch (err) {
+      console.error('Error exporting data:', err);
+      toast.error(t('reports.exportError'), {
+        description: t('errors.unknownError')
       });
     }
   };
@@ -279,7 +352,7 @@ export function ReportsPage() {
               <PrinterIcon className="mr-2 h-4 w-4" />
               {t('reports.print')}
             </Button>
-            <Button>
+            <Button onClick={handleExport} disabled={loading || (activeTab === 'sales' ? salesData.length === 0 : inventoryData.length === 0)}>
               <DownloadIcon className="mr-2 h-4 w-4" />
               {t('reports.export')}
             </Button>

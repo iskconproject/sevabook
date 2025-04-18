@@ -18,6 +18,8 @@ import { printReceiptViaBrowser } from '@/components/pos/ThermalReceipt';
 import { ThermalReceiptPreview } from '@/components/settings/ThermalReceiptPreview';
 import { BarcodePreview } from '@/components/settings/BarcodePreview';
 import { useSettings } from '@/hooks/useSettings';
+import { downloadCSV, formatDateForFilename } from '@/lib/utils/exportUtils';
+import { db } from '@/lib/supabase/client';
 
 export function SettingsPage() {
   const { t } = useTranslation();
@@ -160,6 +162,96 @@ export function SettingsPage() {
     toast.success(t('settings.saveSuccess'), {
       description: t('settings.generalSaveDescription')
     });
+  };
+
+  // Handle export data
+  const [exportType, setExportType] = useState<string>('inventory');
+  const [exportLoading, setExportLoading] = useState<boolean>(false);
+
+  const handleExportData = async () => {
+    try {
+      setExportLoading(true);
+      const dateStr = formatDateForFilename();
+
+      if (exportType === 'inventory') {
+        // Get inventory data
+        const { data: inventory, error } = await db.inventory.getItems();
+
+        if (error) throw error;
+        if (!inventory || inventory.length === 0) {
+          toast.error(t('reports.noDataToExport'));
+          return;
+        }
+
+        // Prepare inventory data for export
+        const exportData = inventory.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          category: t(`inventory.categories.${item.category}`),
+          language: item.language !== 'none' ? t(`inventory.languages.${item.language}`) : '',
+          price: item.price,
+          stock: item.stock
+        }));
+
+        // Define headers for CSV
+        const headers = [
+          'ID',
+          t('inventory.name'),
+          t('inventory.category'),
+          t('inventory.language'),
+          t('inventory.price'),
+          t('inventory.stock')
+        ];
+
+        // Download CSV
+        downloadCSV(exportData, `inventory-${dateStr}.csv`, headers);
+
+        toast.success(t('reports.exportSuccess'), {
+          description: t('reports.inventoryExportDescription')
+        });
+      } else if (exportType === 'transactions' || exportType === 'sales') {
+        // Get all transactions
+        const { data: transactions, error } = await db.transactions.getTransactions();
+
+        if (error) throw error;
+        if (!transactions || transactions.length === 0) {
+          toast.error(t('reports.noDataToExport'));
+          return;
+        }
+
+        // Prepare transaction data for export
+        const exportData = transactions.map((transaction: any) => ({
+          id: transaction.id,
+          date: new Date(transaction.created_at).toLocaleDateString(),
+          payment_method: t(`pos.${transaction.payment_method}`),
+          total: transaction.total,
+          customer_phone: transaction.customer_phone || ''
+        }));
+
+        // Define headers for CSV
+        const headers = [
+          'ID',
+          t('reports.date'),
+          t('pos.paymentMethod'),
+          t('pos.amount'),
+          t('pos.customerPhone')
+        ];
+
+        // Download CSV
+        downloadCSV(exportData, `transactions-${dateStr}.csv`, headers);
+
+        toast.success(t('reports.exportSuccess'), {
+          description: t('reports.salesExportDescription')
+        });
+      }
+    } catch (err) {
+      console.error('Error exporting data:', err);
+      toast.error(t('reports.exportError'), {
+        description: t('errors.unknownError')
+      });
+    } finally {
+      setExportLoading(false);
+    }
   };
 
   // Render save button
@@ -654,7 +746,10 @@ export function SettingsPage() {
                   Export specific data to CSV or Excel format.
                 </p>
                 <div className="flex gap-2">
-                  <Select defaultValue="inventory">
+                  <Select
+                    value={exportType}
+                    onValueChange={setExportType}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -664,8 +759,12 @@ export function SettingsPage() {
                       <SelectItem value="sales">{t('reports.salesReport')}</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Button>
-                    <DownloadIcon className="mr-2 h-4 w-4" />
+                  <Button onClick={handleExportData} disabled={exportLoading}>
+                    {exportLoading ? (
+                      <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <DownloadIcon className="mr-2 h-4 w-4" />
+                    )}
                     Export
                   </Button>
                 </div>

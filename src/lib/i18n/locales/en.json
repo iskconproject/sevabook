@@ -197,7 +197,12 @@
     "noTransactions": "No transactions found in this date range",
     "noInventory": "No inventory items found",
     "fetchError": "Failed to fetch report data",
-    "filterError": "Failed to apply filter"
+    "filterError": "Failed to apply filter",
+    "exportSuccess": "Export Successful",
+    "exportError": "Export Failed",
+    "noDataToExport": "No data available to export",
+    "salesExportDescription": "Sales data has been exported to CSV format",
+    "inventoryExportDescription": "Inventory data has been exported to CSV format"
   },
   "settings": {
     "title": "Settings",
