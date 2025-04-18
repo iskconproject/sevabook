@@ -27,6 +27,7 @@ export interface AppSettings {
   printer_type?: 'browser' | 'serial' | 'network';
   printer_ip?: string;
   printer_port?: number;
+  show_print_preview?: boolean;
   user_id?: string;
   created_at: string;
   updated_at: string;

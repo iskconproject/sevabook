@@ -18,6 +18,7 @@ export interface ReceiptSettings {
   printerType?: 'browser' | 'serial' | 'network';
   printerIp?: string;
   printerPort?: number;
+  showPrintPreview?: boolean;
 }
 
 // Sample receipt items for preview

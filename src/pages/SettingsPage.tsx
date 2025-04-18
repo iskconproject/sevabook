@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,6 +42,7 @@ export function SettingsPage() {
   const [printerType, setPrinterType] = useState<'browser' | 'serial' | 'network'>('browser');
   const [printerIp, setPrinterIp] = useState('');
   const [printerPort, setPrinterPort] = useState(9100);
+  const [showPrintPreview, setShowPrintPreview] = useState(true);
 
   // Barcode settings state
   const [barcodeType, setBarcodeType] = useState<'CODE128' | 'EAN13' | 'UPC'>('CODE128');
@@ -73,7 +75,8 @@ export function SettingsPage() {
     size: receiptSize,
     printerType,
     printerIp,
-    printerPort
+    printerPort,
+    showPrintPreview
   };
 
   // Load settings from database when component mounts
@@ -90,6 +93,7 @@ export function SettingsPage() {
       setPrinterType(dbReceiptSettings.printerType || 'browser');
       setPrinterIp(dbReceiptSettings.printerIp || '');
       setPrinterPort(dbReceiptSettings.printerPort || 9100);
+      setShowPrintPreview(dbReceiptSettings.showPrintPreview !== undefined ? dbReceiptSettings.showPrintPreview : true);
 
       // Load barcode settings
       const dbBarcodeSettings = getBarcodeSettingsUI();
@@ -398,6 +402,25 @@ export function SettingsPage() {
                     <p className="text-xs text-muted-foreground">{t('settings.receiptSettings.printerTypeDescription')}</p>
                   </div>
 
+                  {printerType === 'browser' && (
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="showPrintPreview"
+                          checked={showPrintPreview}
+                          onCheckedChange={(checked) => setShowPrintPreview(checked as boolean)}
+                        />
+                        <label
+                          htmlFor="showPrintPreview"
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {t('settings.receiptSettings.showPrintPreview')}
+                        </label>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{t('settings.receiptSettings.showPrintPreviewDescription')}</p>
+                    </div>
+                  )}
+
                   {printerType === 'network' && (
                     <div className="space-y-4">
                       <div className="space-y-2">
@@ -427,7 +450,7 @@ export function SettingsPage() {
                 <SaveButton onClick={handleSaveReceiptSettings} />
                 <Button
                   variant="outline"
-                  onClick={() => printReceiptViaBrowser(sampleReceiptItems, receiptSettings)}
+                  onClick={() => printReceiptViaBrowser(sampleReceiptItems, receiptSettings, `PREVIEW-${Date.now()}`, true)}
                 >
                   <PrinterIcon className="mr-2 h-4 w-4" />
                   {t('common.print')}

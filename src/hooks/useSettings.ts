@@ -159,7 +159,8 @@ export function useSettings() {
         size: '80mm',
         printerType: 'browser',
         printerIp: '',
-        printerPort: 9100
+        printerPort: 9100,
+        showPrintPreview: true
       };
     }
 
@@ -172,7 +173,8 @@ export function useSettings() {
       size: appSettings.receipt_size || '80mm',
       printerType: appSettings.printer_type || 'browser',
       printerIp: appSettings.printer_ip || '',
-      printerPort: appSettings.printer_port || 9100
+      printerPort: appSettings.printer_port || 9100,
+      showPrintPreview: appSettings.show_print_preview !== undefined ? appSettings.show_print_preview : true
     };
   };
 
@@ -210,7 +212,8 @@ export function useSettings() {
       receipt_size: settings.size,
       printer_type: settings.printerType,
       printer_ip: settings.printerIp,
-      printer_port: settings.printerPort
+      printer_port: settings.printerPort,
+      show_print_preview: settings.showPrintPreview
     };
   };
 

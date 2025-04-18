@@ -121,8 +121,11 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel, showFoote
     const receiptSettings = getReceiptSettings();
 
     try {
+      // Get printer settings
+      const showPreview = receiptSettings.printerType === 'browser' && receiptSettings.showPrintPreview !== false;
+
       // Print receipt using thermal printer
-      await printThermalReceipt(receiptItems, receiptSettings, `TR-${Date.now()}`);
+      await printThermalReceipt(receiptItems, receiptSettings, `TR-${Date.now()}`, showPreview);
       toast.success(t('pos.printingSuccess'), {
         description: t('pos.printingSuccessDescription'),
       });

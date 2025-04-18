@@ -206,11 +206,13 @@ const generateSimpleReceiptHtml = (
 /**
  * Print a receipt using the browser's print functionality
  * This is a fallback method when direct thermal printing is not available
+ * @param showPreview Whether to show the print preview dialog (default: true)
  */
 export const printReceiptViaBrowser = async (
   items: ReceiptItem[],
   settings: ReceiptSettings,
-  transactionId: string = `TR-${Date.now()}`
+  transactionId: string = `TR-${Date.now()}`,
+  showPreview: boolean = true
 ): Promise<void> => {
   try {
     // Create a complete Printer component with all required props
@@ -330,7 +332,7 @@ export const printReceiptViaBrowser = async (
     script.textContent = `
       // Print and close after a short delay
       setTimeout(() => {
-        window.print();
+        ${showPreview ? 'window.print();' : 'window.print({ silent: true });'}
         setTimeout(() => window.close(), 500);
       }, 300);
     `;
@@ -380,7 +382,7 @@ export const printReceiptViaBrowser = async (
     const script = printWindow.document.createElement('script');
     script.textContent = `
       setTimeout(() => {
-        window.print();
+        ${showPreview ? 'window.print();' : 'window.print({ silent: true });'}
         setTimeout(() => window.close(), 500);
       }, 300);
     `;
@@ -395,7 +397,8 @@ export const printReceiptViaBrowser = async (
 export const printThermalReceipt = async (
   items: ReceiptItem[],
   settings: ReceiptSettings,
-  transactionId: string = `TR-${Date.now()}`
+  transactionId: string = `TR-${Date.now()}`,
+  showPreview: boolean = false
 ): Promise<void> => {
   try {
     // Create the receipt JSX
@@ -432,11 +435,11 @@ export const printThermalReceipt = async (
     }
 
     // Fall back to browser printing
-    await printReceiptViaBrowser(items, settings, transactionId);
+    await printReceiptViaBrowser(items, settings, transactionId, showPreview);
   } catch (error) {
     console.error('Error in printThermalReceipt:', error);
     // Final fallback
-    await printReceiptViaBrowser(items, settings, transactionId);
+    await printReceiptViaBrowser(items, settings, transactionId, showPreview);
   }
 };
 

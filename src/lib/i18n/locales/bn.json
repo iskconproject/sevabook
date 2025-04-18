@@ -229,7 +229,9 @@
       "printerTypeDescription": "রসিদ প্রিন্ট করার পদ্ধতি নির্বাচন করুন",
       "printerIp": "প্রিন্টার আইপি ঠিকানা",
       "printerPort": "প্রিন্টার পোর্ট",
-      "printerPortDescription": "অধিকাংশ থার্মাল প্রিন্টারের জন্য ডিফল্ট পোর্ট 9100"
+      "printerPortDescription": "অধিকাংশ থার্মাল প্রিন্টারের জন্য ডিফল্ট পোর্ট 9100",
+      "showPrintPreview": "প্রিন্ট প্রিভিউ দেখান",
+      "showPrintPreviewDescription": "প্রিন্ট করার আগে ব্রাউজার প্রিন্ট ডায়ালগ দেখান"
     },
     "barcodeSettings": {
       "title": "বারকোড সেটিংস",

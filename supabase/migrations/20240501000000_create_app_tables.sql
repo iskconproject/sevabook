@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS public.app_settings (
   printer_type TEXT DEFAULT 'browser',
   printer_ip TEXT DEFAULT '',
   printer_port INTEGER DEFAULT 9100,
+  show_print_preview BOOLEAN DEFAULT true,
   user_id UUID REFERENCES public.users(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
@@ -292,7 +293,8 @@ INSERT INTO public.app_settings (
   receipt_size,
   printer_type,
   printer_ip,
-  printer_port
+  printer_port,
+  show_print_preview
 ) VALUES (
   'ISKCON Temple',
   'ISKCON Temple Book Stall',
@@ -303,5 +305,6 @@ INSERT INTO public.app_settings (
   '80mm',
   'browser',
   '',
-  9100
+  9100,
+  true
 );
