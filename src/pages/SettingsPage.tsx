@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,18 +9,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { MoonIcon, SunIcon, LanguagesIcon, SaveIcon, RefreshCwIcon, DownloadIcon, PrinterIcon } from 'lucide-react';
+import { MoonIcon, SunIcon, LanguagesIcon, SaveIcon, RefreshCwIcon, DownloadIcon, PrinterIcon, LoaderIcon } from 'lucide-react';
 import { BarcodeItem } from '@/lib/utils/barcodeUtils';
 import { ReceiptSettings, sampleReceiptItems } from '@/lib/utils/receiptUtils';
 // import { printReceiptHtml } from '@/lib/utils/receiptHtmlUtils';
 import { printThermalReceipt } from '@/components/pos/ThermalReceipt';
 import { ThermalReceiptPreview } from '@/components/settings/ThermalReceiptPreview';
 import { BarcodePreview } from '@/components/settings/BarcodePreview';
+import { useSettings } from '@/hooks/useSettings';
 
 export function SettingsPage() {
   const { t } = useTranslation();
   const { theme, setTheme } = useTheme();
   const { language, setLanguage, languages } = useLanguage();
+  const {
+    loading,
+    saveStatus,
+    getReceiptSettings,
+    getBarcodeSettingsUI,
+    saveReceiptSettings,
+    saveBarcodeSettingsUI
+  } = useSettings();
 
   // Receipt settings state
   const [receiptHeader, setReceiptHeader] = useState("ISKCON Temple Book Stall");
@@ -35,6 +45,10 @@ export function SettingsPage() {
   const [includeTitle, setIncludeTitle] = useState(true);
   const [includeLanguage, setIncludeLanguage] = useState(true);
   const [customHeading, setCustomHeading] = useState('ISKCON Temple');
+
+  // Temple info state - these will be connected to database in future updates
+  const templeName = "ISKCON Temple";
+  const templeAddress = "123 Temple Street, City, State, Country";
 
   // Sample barcode item for preview
   const sampleBarcodeItem: BarcodeItem = {
@@ -53,6 +67,111 @@ export function SettingsPage() {
     showBarcode,
     customMessage
   };
+
+  // Load settings from database when component mounts
+  useEffect(() => {
+    if (!loading) {
+      // Load receipt settings
+      const dbReceiptSettings = getReceiptSettings();
+      setReceiptHeader(dbReceiptSettings.header);
+      setReceiptFooter(dbReceiptSettings.footer);
+      setShowLogo(dbReceiptSettings.showLogo);
+      setShowBarcode(dbReceiptSettings.showBarcode);
+      setCustomMessage(dbReceiptSettings.customMessage);
+
+      // Load barcode settings
+      const dbBarcodeSettings = getBarcodeSettingsUI();
+      setBarcodeType(dbBarcodeSettings.type);
+      setBarcodeSize(dbBarcodeSettings.size);
+      setIncludePrice(dbBarcodeSettings.includePrice);
+      setIncludeTitle(dbBarcodeSettings.includeTitle);
+      setIncludeLanguage(dbBarcodeSettings.includeLanguage);
+      setCustomHeading(dbBarcodeSettings.customHeading || 'ISKCON Temple');
+    }
+  }, [loading, getReceiptSettings, getBarcodeSettingsUI]);
+
+  // Save receipt settings to database
+  const handleSaveReceiptSettings = async () => {
+    const settings: ReceiptSettings = {
+      header: receiptHeader,
+      footer: receiptFooter,
+      showLogo,
+      showBarcode,
+      customMessage
+    };
+    const result = await saveReceiptSettings(settings);
+
+    if (result.success) {
+      toast.success(t('settings.saveSuccess'), {
+        description: t('settings.receiptSaveDescription')
+      });
+    } else {
+      toast.error(t('settings.saveError'), {
+        description: result.error || t('errors.unknownError')
+      });
+    }
+  };
+
+  // Save barcode settings to database
+  const handleSaveBarcodeSettings = async () => {
+    const settings = {
+      type: barcodeType,
+      size: barcodeSize,
+      includePrice,
+      includeTitle,
+      includeLanguage,
+      customHeading
+    };
+    const result = await saveBarcodeSettingsUI(settings);
+
+    if (result.success) {
+      toast.success(t('settings.saveSuccess'), {
+        description: t('settings.barcodeSaveDescription')
+      });
+    } else {
+      toast.error(t('settings.saveError'), {
+        description: result.error || t('errors.unknownError')
+      });
+    }
+  };
+
+  // Save general settings to database
+  const handleSaveGeneralSettings = async () => {
+    // This would save temple name, address, etc.
+    // For now, just show a success message
+    // TODO: Implement this when the database schema is updated
+    toast.success(t('settings.saveSuccess'), {
+      description: t('settings.generalSaveDescription')
+    });
+  };
+
+  // Render save button
+  const SaveButton = ({ onClick }: { onClick: () => Promise<void> }) => (
+    <Button onClick={onClick} disabled={saveStatus === 'saving'}>
+      {saveStatus === 'saving' ? (
+        <>
+          <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
+          {t('settings.saving')}
+        </>
+      ) : (
+        <>
+          <SaveIcon className="mr-2 h-4 w-4" />
+          {t('common.save')}
+        </>
+      )}
+    </Button>
+  );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-200px)]">
+        <div className="flex flex-col items-center gap-2">
+          <LoaderIcon className="h-8 w-8 animate-spin" />
+          <p>{t('common.loading')}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -147,19 +266,16 @@ export function SettingsPage() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Temple Name</label>
-                <Input defaultValue="ISKCON Temple" />
+                <Input defaultValue={templeName} />
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Temple Address</label>
-                <Textarea defaultValue="123 Temple Street, City, State, Country" />
+                <Textarea defaultValue={templeAddress} />
               </div>
             </CardContent>
             <CardFooter>
-              <Button>
-                <SaveIcon className="mr-2 h-4 w-4" />
-                {t('common.save')}
-              </Button>
+              <SaveButton onClick={handleSaveGeneralSettings} />
             </CardFooter>
           </Card>
         </TabsContent>
@@ -231,10 +347,7 @@ export function SettingsPage() {
                 </div>
               </CardContent>
               <CardFooter className="flex justify-between">
-                <Button>
-                  <SaveIcon className="mr-2 h-4 w-4" />
-                  {t('common.save')}
-                </Button>
+                <SaveButton onClick={handleSaveReceiptSettings} />
                 <Button
                   variant="outline"
                   onClick={() => printThermalReceipt(sampleReceiptItems, receiptSettings)}
@@ -367,10 +480,7 @@ export function SettingsPage() {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button>
-                  <SaveIcon className="mr-2 h-4 w-4" />
-                  {t('common.save')}
-                </Button>
+                <SaveButton onClick={handleSaveBarcodeSettings} />
               </CardFooter>
             </Card>
 

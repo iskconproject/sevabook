@@ -216,7 +216,14 @@
       "includeTitle": "Include Title",
       "includeLanguage": "Include Language",
       "customHeading": "Custom Heading"
-    }
+    },
+    "saveSuccess": "Settings saved successfully",
+    "saveError": "Failed to save settings",
+    "generalSaveDescription": "General settings have been updated",
+    "receiptSaveDescription": "Receipt settings have been updated",
+    "barcodeSaveDescription": "Barcode settings have been updated",
+    "saving": "Saving...",
+    "saved": "Saved"
   },
   "users": {
     "title": "Users",

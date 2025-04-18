@@ -216,7 +216,14 @@
       "includeTitle": "শিরোনাম অন্তর্ভুক্ত করুন",
       "includeLanguage": "ভাষা অন্তর্ভুক্ত করুন",
       "customHeading": "কাস্টম শিরোনাম"
-    }
+    },
+    "saveSuccess": "সেটিংস সফলভাবে সংরক্ষিত হয়েছে",
+    "saveError": "সেটিংস সংরক্ষণ করতে ব্যর্থ হয়েছে",
+    "generalSaveDescription": "সাধারণ সেটিংস আপডেট করা হয়েছে",
+    "receiptSaveDescription": "রসিদ সেটিংস আপডেট করা হয়েছে",
+    "barcodeSaveDescription": "বারকোড সেটিংস আপডেট করা হয়েছে",
+    "saving": "সংরক্ষণ করা হচ্ছে...",
+    "saved": "সংরক্ষিত হয়েছে"
   },
   "users": {
     "title": "ব্যবহারকারী",

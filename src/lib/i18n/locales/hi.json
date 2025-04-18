@@ -216,7 +216,14 @@
       "includeTitle": "शीर्षक शामिल करें",
       "includeLanguage": "भाषा शामिल करें",
       "customHeading": "कस्टम शीर्षक"
-    }
+    },
+    "saveSuccess": "सेटिंग्स सफलतापूर्वक सहेजी गई",
+    "saveError": "सेटिंग्स सहेजने में विफल",
+    "generalSaveDescription": "सामान्य सेटिंग्स अपडेट की गई हैं",
+    "receiptSaveDescription": "रसीद सेटिंग्स अपडेट की गई हैं",
+    "barcodeSaveDescription": "बारकोड सेटिंग्स अपडेट की गई हैं",
+    "saving": "सहेज रहा है...",
+    "saved": "सहेजा गया"
   },
   "users": {
     "title": "उपयोगकर्ता",
