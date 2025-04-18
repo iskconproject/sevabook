@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { db } from '../lib/supabase/client';
-import { User } from '@supabase/supabase-js';
+import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { UserProfile, UserRole, SUPER_ADMIN_EMAIL } from '../lib/types/user';
 
 interface AuthContextType {
@@ -18,44 +18,50 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Helper function to determine the role based on email - moved outside for cleaner code
+const getRoleFromEmail = (email: string): UserRole | null => {
+  if (email === SUPER_ADMIN_EMAIL) return 'superAdmin';
+  if (email === 'arindam.dawn@monet.work') return 'admin';
+  if (email === 'projectiskcon@gmail.com') return 'seller';
+  if (email === 'arindam@appexert.com') return 'manager';
+  return null;
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
 
-  // Fetch user profile from database
-  const fetchUserProfile = async (userId: string) => {
+  // Fetch user profile from database or create a temporary one
+  const fetchUserProfile = async (userId: string, email: string) => {
     try {
-      // Get user profile from the database
-      const { data, error } = await db.users.getUserById(userId);
-
-      if (error) {
-        console.error('Error fetching user profile:', error);
-        // On database error, don't clear the user state yet
-        // The trigger should have created the profile
-      }
-
-      if (data) {
-        // If we have data, use it
-        setUserProfile(data);
-        setUserRole(data.role);
+      // First check session storage for cached profile to avoid unnecessary DB calls
+      const cachedProfile = sessionStorage.getItem(`user_profile_${userId}`);
+      if (cachedProfile) {
+        const profile = JSON.parse(cachedProfile);
+        setUserProfile(profile);
+        setUserRole(profile.role);
         return;
       }
 
-      // If no data, check if the email is in the allowed list
-      const email = user?.email || '';
-      let defaultRole: UserRole | null = null;
+      // Get user profile from the database
+      const { data, error } = await db.users.getUserById(userId);
 
-      if (email === SUPER_ADMIN_EMAIL) {
-        defaultRole = 'superAdmin';
-      } else if (email === 'arindam.dawn@monet.work') {
-        defaultRole = 'admin';
-      } else if (email === 'projectiskcon@gmail.com') {
-        defaultRole = 'seller';
-      } else if (email === 'arindam@appexert.com') {
-        defaultRole = 'manager';
+      if (data) {
+        // If we have data, use it and cache it
+        setUserProfile(data);
+        setUserRole(data.role);
+        sessionStorage.setItem(`user_profile_${userId}`, JSON.stringify(data));
+        return;
       }
+
+      if (error) {
+        console.error('Error fetching user profile:', error);
+      }
+
+      // If no data, check if the email is in the allowed list
+      const defaultRole = getRoleFromEmail(email);
 
       // If email is not in the allowed list, sign out
       if (!defaultRole) {
@@ -64,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // For allowed emails, set a temporary profile until the database is updated
+      // For allowed emails, set a temporary profile
       const tempProfile: UserProfile = {
         id: userId,
         name: email.split('@')[0] || 'User',
@@ -76,39 +82,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setUserProfile(tempProfile);
       setUserRole(defaultRole);
+
+      // Cache the profile
+      sessionStorage.setItem(`user_profile_${userId}`, JSON.stringify(tempProfile));
+
+      // Create the user in the database if it doesn't exist
+      await db.users.createUserIfNotExists(tempProfile);
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
-      // On unexpected error, sign out
       await signOut();
     }
   };
 
   useEffect(() => {
-    // Check if user is already logged in
-    const checkUser = async () => {
+    // Check if user session exists
+    const initializeAuth = async () => {
       try {
-        const { data } = await db.auth.getUser();
-        setUser(data.user);
+        // Get the session first to properly check existing auth state
+        const { data: sessionData } = await db.auth.getSession();
 
-        if (data.user) {
-          await fetchUserProfile(data.user.id);
+        if (sessionData.session?.user) {
+          const currentUser = sessionData.session.user;
+          setUser(currentUser);
+          await fetchUserProfile(currentUser.id, currentUser.email || '');
         }
       } catch (error) {
-        console.error('Error checking authentication:', error);
+        console.error('Error initializing authentication:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    checkUser();
+    initializeAuth();
 
     // Subscribe to auth changes
     const { data: authListener } = db.auth.onAuthStateChange(
-      async (_event: any, session: any) => {
+      async (event: AuthChangeEvent, session: Session | null) => {
+        console.log('Auth state changed:', event);
+
         if (session?.user) {
           setUser(session.user);
-          await fetchUserProfile(session.user.id);
+          await fetchUserProfile(session.user.id, session.user.email || '');
         } else {
+          // Clear user data on signout
+          if (user?.id) {
+            sessionStorage.removeItem(`user_profile_${user.id}`);
+          }
           setUser(null);
           setUserProfile(null);
           setUserRole(null);
@@ -133,6 +152,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
+    // Clear session storage before signing out
+    if (user?.id) {
+      sessionStorage.removeItem(`user_profile_${user.id}`);
+    }
     // Use the actual Supabase auth
     await db.auth.signOut();
     // Clear the state
@@ -163,7 +186,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth() {
+export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
