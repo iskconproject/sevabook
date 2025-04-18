@@ -149,10 +149,10 @@ export function POSPage() {
                       <Button
                         key={item.id}
                         variant="outline"
-                        className="h-auto flex-col items-start p-3 text-left"
+                        className="h-auto flex-col items-start p-3 text-left w-full"
                         onClick={() => addToCart(item)}
                       >
-                        <div className="font-medium">{item.name}</div>
+                        <div className="font-medium truncate w-full">{item.name}</div>
                         <div className="text-xs text-muted-foreground">
                           {item.language && item.language !== 'none' && `${t(`inventory.languages.${item.language}`)} - `}
                           ₹{item.price}
@@ -170,10 +170,10 @@ export function POSPage() {
                         <Button
                           key={item.id}
                           variant="outline"
-                          className="h-auto flex-col items-start p-3 text-left"
+                          className="h-auto flex-col items-start p-3 text-left w-full"
                           onClick={() => addToCart(item)}
                         >
-                          <div className="font-medium">{item.name}</div>
+                          <div className="font-medium truncate w-full">{item.name}</div>
                           <div className="text-xs text-muted-foreground">
                             {item.language && item.language !== 'none' && `${t(`inventory.languages.${item.language}`)} - `}
                             ₹{item.price}

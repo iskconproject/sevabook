@@ -11,7 +11,15 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export const db = {
   // Auth operations
   auth: {
-    signIn: async (email: string, password: string) => {
+    signInWithGoogle: async () => {
+      return await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+    },
+    signInWithPassword: async (email: string, password: string) => {
       return await supabase.auth.signInWithPassword({ email, password });
     },
     signUp: async (email: string, password: string) => {
@@ -30,7 +38,7 @@ export const db = {
       return supabase.auth.onAuthStateChange(callback);
     }
   },
-  
+
   // Inventory operations
   inventory: {
     getItems: async () => {
@@ -55,7 +63,7 @@ export const db = {
         .or(`name.ilike.%${query}%, description.ilike.%${query}%`);
     }
   },
-  
+
   // Transaction operations
   transactions: {
     getTransactions: async () => {
@@ -68,7 +76,7 @@ export const db = {
       return await supabase.from('transactions').insert(transaction);
     }
   },
-  
+
   // User operations
   users: {
     getUsers: async () => {

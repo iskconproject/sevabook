@@ -9,6 +9,7 @@ import { ManagerLayout } from './components/layout/ManagerLayout';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { RoleBasedRoute } from './components/layout/RoleBasedRoute';
 import { LoginPage } from './pages/LoginPage';
+import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { InventoryPage } from './pages/InventoryPage';
 import { POSPage } from './pages/POSPage';
@@ -30,6 +31,7 @@ function App() {
               <Routes>
                 {/* Public routes */}
                 <Route path="login" element={<LoginPage />} />
+                <Route path="auth/callback" element={<AuthCallbackPage />} />
 
                 {/* Redirect based on role - This should be first to handle initial routing */}
                 <Route path="/" element={

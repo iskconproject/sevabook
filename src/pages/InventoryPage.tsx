@@ -353,7 +353,9 @@ export function InventoryPage() {
                 ) : (
                   filteredInventory.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.name}</TableCell>
+                      <TableCell className="font-medium max-w-[200px]">
+                        <div className="truncate">{item.name}</div>
+                      </TableCell>
                       <TableCell>{t(`inventory.categories.${item.category}`)}</TableCell>
                       <TableCell>
                         {item.language && item.language !== 'none' ? t(`inventory.languages.${item.language}`) : '-'}

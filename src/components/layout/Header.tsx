@@ -13,15 +13,18 @@ export function Header() {
   const { t } = useTranslation();
   const { theme, setTheme } = useTheme();
   const { language, setLanguage, languages } = useLanguage();
-  const { user, signOut } = useAuth();
+  const { user, signOut, userRole } = useAuth();
 
   const { collapsed, toggleSidebar } = useSidebar();
+
+  // Check if the user is a seller (sellers don't have a sidebar)
+  const isSeller = userRole === 'seller';
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between mx-auto px-6">
         <div className="flex items-center gap-2">
-          {user ? (
+          {user && !isSeller ? (
             <Button
               variant="ghost"
               size="icon"
@@ -106,24 +109,28 @@ export function Header() {
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">{user.email}</p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      {user.email}
+                      {userRole && t(`users.roles.${userRole}`)}
                     </p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/profile">
-                    <UserIcon className="mr-2 h-4 w-4" />
-                    <span>{t('users.title')}</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/settings">
-                    <SettingsIcon className="mr-2 h-4 w-4" />
-                    <span>{t('settings.title')}</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
+                {(userRole === 'admin' || userRole === 'superAdmin') && (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/users">
+                        <UserIcon className="mr-2 h-4 w-4" />
+                        <span>{t('users.title')}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/settings">
+                        <SettingsIcon className="mr-2 h-4 w-4" />
+                        <span>{t('settings.title')}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
                 <DropdownMenuItem onClick={() => signOut()}>
                   <LogOutIcon className="mr-2 h-4 w-4" />
                   <span>{t('auth.logout')}</span>
