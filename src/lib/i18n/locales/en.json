@@ -46,7 +46,9 @@
     "loginSuccess": "Logged in successfully",
     "loginError": "Login failed",
     "logoutSuccess": "Logged out successfully",
-    "invalidCredentials": "Invalid email or password"
+    "invalidCredentials": "Invalid email or password",
+    "loginWithGoogle": "Login with Google",
+    "signInWithGoogle": "Sign in with Google"
   },
   "dashboard": {
     "title": "Dashboard",

@@ -46,7 +46,9 @@
     "loginSuccess": "सफलतापूर्वक लॉगिन किया गया",
     "loginError": "लॉगिन विफल",
     "logoutSuccess": "सफलतापूर्वक लॉगआउट किया गया",
-    "invalidCredentials": "अमान्य ईमेल या पासवर्ड"
+    "invalidCredentials": "अमान्य ईमेल या पासवर्ड",
+    "loginWithGoogle": "Google से लॉगिन करें",
+    "signInWithGoogle": "Google से साइन इन करें"
   },
   "dashboard": {
     "title": "डैशबोर्ड",

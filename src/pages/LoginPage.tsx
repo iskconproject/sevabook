@@ -1,15 +1,19 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { MoonIcon, SunIcon, LanguagesIcon } from 'lucide-react';
 
 export function LoginPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const { signInWithGoogle } = useAuth();
+  const { theme, setTheme } = useTheme();
+  const { language, setLanguage, languages } = useLanguage();
   const [loading, setLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
@@ -30,17 +34,72 @@ export function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
+    <div className="flex min-h-screen flex-col items-center justify-center p-4">
+      {/* Logo and Controls */}
+      <div className="flex w-full max-w-md justify-between items-center mb-6">
+        <div className="text-3xl font-bold text-primary">{t('app.name')}</div>
+        <div className="flex items-center gap-2">
+          {/* Theme Toggle */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-9 w-9">
+                {theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) ? (
+                  <MoonIcon className="h-5 w-5" />
+                ) : (
+                  <SunIcon className="h-5 w-5" />
+                )}
+                <span className="sr-only">{t('settings.theme.title')}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>{t('settings.theme.title')}</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => setTheme('light')}>
+                <SunIcon className="mr-2 h-4 w-4" />
+                <span>{t('settings.theme.light')}</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme('dark')}>
+                <MoonIcon className="mr-2 h-4 w-4" />
+                <span>{t('settings.theme.dark')}</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme('system')}>
+                <span className="mr-2">💻</span>
+                <span>{t('settings.theme.system')}</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Language Selector */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-9 w-9">
+                <LanguagesIcon className="h-5 w-5" />
+                <span className="sr-only">{t('settings.language')}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>{t('settings.language')}</DropdownMenuLabel>
+              {languages.map((lang) => (
+                <DropdownMenuItem
+                  key={lang.code}
+                  onClick={() => setLanguage(lang.code)}
+                  className={language === lang.code ? 'bg-accent text-accent-foreground' : ''}
+                >
+                  <span>{lang.name}</span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
+      {/* Login Card */}
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">{t('auth.login')}</CardTitle>
           <CardDescription>{t('app.tagline')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="text-center mb-4">
-            <p className="text-sm text-muted-foreground mb-4">
-              {t('auth.loginWithGoogle')}
-            </p>
+          <div className="text-center">
             <Button
               onClick={handleGoogleSignIn}
               className="w-full"

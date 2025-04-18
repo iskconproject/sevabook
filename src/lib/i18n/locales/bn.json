@@ -46,7 +46,9 @@
     "loginSuccess": "সফলভাবে লগইন হয়েছে",
     "loginError": "লগইন ব্যর্থ হয়েছে",
     "logoutSuccess": "সফলভাবে লগআউট হয়েছে",
-    "invalidCredentials": "অবৈধ ইমেইল বা পাসওয়ার্ড"
+    "invalidCredentials": "অবৈধ ইমেইল বা পাসওয়ার্ড",
+    "loginWithGoogle": "গুগল দিয়ে লগইন করুন",
+    "signInWithGoogle": "গুগল দিয়ে সাইন ইন করুন"
   },
   "dashboard": {
     "title": "ড্যাশবোর্ড",
