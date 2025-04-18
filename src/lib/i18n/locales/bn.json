@@ -158,7 +158,11 @@
     "transactionSuccessful": "আপনার লেনদেন সফলভাবে সম্পন্ন হয়েছে",
     "transactionFailed": "লেনদেন ব্যর্থ হয়েছে",
     "errorSavingTransaction": "লেনদেন সংরক্ষণ করতে একটি ত্রুটি ছিল",
-    "startNewSale": "নতুন বিক্রয় শুরু করুন"
+    "saleComplete": "বিক্রয় সফলভাবে সম্পন্ন হয়েছে",
+    "startNewSale": "নতুন বিক্রয় শুরু করুন",
+    "customerInfo": "গ্রাহকের তথ্য",
+    "customerInfoDescription": "রসিদের জন্য গ্রাহকের বিবরণ যোগ করুন",
+    "customerPhone": "গ্রাহকের ফোন নম্বর"
   },
   "reports": {
     "title": "রিপোর্ট",

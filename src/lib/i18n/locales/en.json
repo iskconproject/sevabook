@@ -158,6 +158,7 @@
     "transactionSuccessful": "Your transaction has been completed successfully",
     "transactionFailed": "Transaction Failed",
     "errorSavingTransaction": "There was an error saving the transaction",
+    "saleComplete": "Sale completed successfully",
     "startNewSale": "Start New Sale",
     "customerInfo": "Customer Information",
     "customerInfoDescription": "Add customer details for the receipt",

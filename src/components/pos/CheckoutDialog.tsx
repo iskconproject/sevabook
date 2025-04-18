@@ -22,9 +22,10 @@ interface CheckoutDialogProps {
   subtotal: number;
   onComplete: () => void;
   onCancel: () => void;
+  showFooter?: boolean;
 }
 
-export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: CheckoutDialogProps) {
+export function CheckoutDialog({ cart, subtotal, onComplete, onCancel, showFooter = true }: CheckoutDialogProps) {
   const { t } = useTranslation();
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'upi'>('cash');
   const [cashReceived, setCashReceived] = useState('');
@@ -286,14 +287,14 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
 
         <TabsContent value="cash" className="space-y-4">
           <Card>
-            <CardHeader>
+            <CardHeader className="py-3">
               <CardTitle>{t('pos.cashPayment')}</CardTitle>
               <CardDescription>
                 {t('pos.cashPaymentDescription')}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
+            <CardContent className="space-y-3 py-2">
+              <div className="space-y-1">
                 <label className="text-sm font-medium">
                   {t('pos.amountReceived')}
                 </label>
@@ -307,7 +308,7 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
               </div>
 
               {parseFloat(cashReceived) >= subtotal && (
-                <div className="rounded-md bg-primary/10 p-4">
+                <div className="rounded-md bg-primary/10 p-3">
                   <div className="flex justify-between font-medium">
                     <span>{t('pos.changeDue')}</span>
                     <span>₹{changeDue.toFixed(2)}</span>
@@ -315,11 +316,13 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
                 </div>
               )}
             </CardContent>
-            <CardFooter>
+            <CardFooter className="py-3">
               <Button
                 className="w-full"
                 disabled={!cashReceived || parseFloat(cashReceived) < subtotal || isProcessing}
                 onClick={handlePaymentComplete}
+                size="lg"
+                variant="default"
               >
                 {isProcessing ? t('common.loading') : t('pos.completeTransaction')}
               </Button>
@@ -328,15 +331,15 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
         </TabsContent>
 
         <TabsContent value="upi" className="space-y-4">
-          <Card>
-            <CardHeader>
+          <Card className="overflow-hidden">
+            <CardHeader className="py-3">
               <CardTitle>{t('pos.upiPayment')}</CardTitle>
               <CardDescription>
                 {t('pos.upiPaymentDescription')}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
+            <CardContent className="space-y-3 py-2">
+              <div className="space-y-1">
                 <label className="text-sm font-medium">
                   {t('pos.upiId')}
                 </label>
@@ -347,20 +350,22 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
                 />
               </div>
 
-              <div className="rounded-md bg-muted p-8 text-center">
-                <div className="mx-auto h-32 w-32 bg-white rounded-md flex items-center justify-center">
+              <div className="rounded-md bg-muted p-4 text-center">
+                <div className="mx-auto h-24 w-24 bg-white rounded-md flex items-center justify-center">
                   <span className="text-xs">QR Code Placeholder</span>
                 </div>
-                <p className="mt-2 text-sm text-muted-foreground">
+                <p className="mt-2 text-xs text-muted-foreground">
                   {t('pos.scanQrPrompt')}
                 </p>
               </div>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="py-3">
               <Button
                 className="w-full"
                 disabled={isProcessing}
                 onClick={handlePaymentComplete}
+                size="lg"
+                variant="default"
               >
                 {isProcessing ? t('common.loading') : t('pos.completeTransaction')}
               </Button>
@@ -370,14 +375,14 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
       </Tabs>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="py-3">
           <CardTitle>{t('pos.customerInfo')}</CardTitle>
           <CardDescription>
             {t('pos.customerInfoDescription')}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
+        <CardContent className="py-2">
+          <div className="space-y-1">
             <label className="text-sm font-medium">
               {t('pos.customerPhone')}
             </label>
@@ -390,22 +395,26 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel }: Checkou
         </CardContent>
       </Card>
 
-      <div className="space-y-2">
-        <div className="flex justify-between text-sm">
-          <span>{t('pos.subtotal')}</span>
-          <span>₹{subtotal.toFixed(2)}</span>
-        </div>
-        <div className="flex justify-between font-bold text-lg">
-          <span>{t('pos.total')}</span>
-          <span>₹{subtotal.toFixed(2)}</span>
-        </div>
-      </div>
+      {showFooter && (
+        <>
+          <div className="space-y-1 py-1">
+            <div className="flex justify-between text-sm">
+              <span>{t('pos.subtotal')}</span>
+              <span>₹{subtotal.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between font-bold">
+              <span>{t('pos.total')}</span>
+              <span>₹{subtotal.toFixed(2)}</span>
+            </div>
+          </div>
 
-      <DialogFooter>
-        <Button variant="outline" onClick={onCancel}>
-          {t('common.cancel')}
-        </Button>
-      </DialogFooter>
+          <DialogFooter>
+            <Button variant="outline" onClick={onCancel}>
+              {t('common.cancel')}
+            </Button>
+          </DialogFooter>
+        </>
+      )}
     </div>
   );
 }

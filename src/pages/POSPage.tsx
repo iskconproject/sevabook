@@ -303,19 +303,41 @@ export function POSPage() {
               </Button>
 
               <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
-                <DialogContent className="sm:max-w-[600px]">
-                  <DialogHeader>
-                    <DialogTitle>{t('pos.checkout')}</DialogTitle>
-                    <DialogDescription>
-                      {t('pos.checkoutDescription')}
-                    </DialogDescription>
-                  </DialogHeader>
-                  <CheckoutDialog
-                    cart={cart}
-                    subtotal={subtotal}
-                    onComplete={handleCheckoutComplete}
-                    onCancel={() => setIsCheckoutOpen(false)}
-                  />
+                <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col p-0">
+                  <div className="p-6 pb-0">
+                    <DialogHeader>
+                      <DialogTitle>{t('pos.checkout')}</DialogTitle>
+                      <DialogDescription>
+                        {t('pos.checkoutDescription')}
+                      </DialogDescription>
+                    </DialogHeader>
+                  </div>
+
+                  <div className="overflow-y-auto px-6 flex-1 max-h-[calc(90vh-16rem)]">
+                    <CheckoutDialog
+                      cart={cart}
+                      subtotal={subtotal}
+                      onComplete={handleCheckoutComplete}
+                      onCancel={() => setIsCheckoutOpen(false)}
+                      showFooter={false}
+                    />
+                  </div>
+
+                  <div className="border-t mt-4 p-6 bg-background sticky bottom-0 shadow-sm">
+                    <div className="space-y-2 mb-4">
+                      <div className="flex justify-between text-sm">
+                        <span>{t('pos.subtotal')}</span>
+                        <span>₹{subtotal.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between font-bold text-lg">
+                        <span>{t('pos.total')}</span>
+                        <span>₹{subtotal.toFixed(2)}</span>
+                      </div>
+                    </div>
+                    <Button variant="outline" onClick={() => setIsCheckoutOpen(false)} className="w-full">
+                      {t('common.cancel')}
+                    </Button>
+                  </div>
                 </DialogContent>
               </Dialog>
             </CardFooter>

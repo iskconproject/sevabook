@@ -158,7 +158,11 @@
     "transactionSuccessful": "आपका लेनदेन सफलतापूर्वक पूरा हो गया है",
     "transactionFailed": "लेनदेन विफल",
     "errorSavingTransaction": "लेनदेन सहेजने में एक त्रुटि हुई",
-    "startNewSale": "नई बिक्री शुरू करें"
+    "saleComplete": "बिक्री सफलतापूर्वक पूरी हुई",
+    "startNewSale": "नई बिक्री शुरू करें",
+    "customerInfo": "ग्राहक जानकारी",
+    "customerInfoDescription": "रसीद के लिए ग्राहक विवरण जोड़ें",
+    "customerPhone": "ग्राहक फोन नंबर"
   },
   "reports": {
     "title": "रिपोर्ट",
