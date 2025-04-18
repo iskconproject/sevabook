@@ -179,7 +179,14 @@
     "salesByCategory": "বিভাগ অনুযায়ী বিক্রয়",
     "salesByPaymentMethod": "পেমেন্ট পদ্ধতি অনুযায়ী বিক্রয়",
     "dailySales": "দৈনিক বিক্রয়",
-    "monthlySales": "মাসিক বিক্রয়"
+    "monthlySales": "মাসিক বিক্রয়",
+    "date": "তারিখ",
+    "transactions": "লেনদেন",
+    "sold": "বিক্রিত",
+    "noTransactions": "এই তারিখ সীমায় কোন লেনদেন পাওয়া যায়নি",
+    "noInventory": "কোন ইনভেন্টরি আইটেম পাওয়া যায়নি",
+    "fetchError": "রিপোর্ট ডেটা আনতে ব্যর্থ হয়েছে",
+    "filterError": "ফিল্টার প্রয়োগ করতে ব্যর্থ হয়েছে"
   },
   "settings": {
     "title": "সেটিংস",

@@ -1,45 +1,80 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DownloadIcon, FilterIcon, PrinterIcon, BarChart3Icon, PieChartIcon, LineChartIcon } from 'lucide-react';
+import { DownloadIcon, FilterIcon, PrinterIcon, BarChart3Icon, PieChartIcon, LineChartIcon, Loader2Icon } from 'lucide-react';
+import { useReports } from '@/hooks/useReports';
+import { format } from 'date-fns';
+import { toast } from 'sonner';
 
-// Mock sales data
-const mockSalesData = [
-  { id: '1', date: '2023-06-15', items: 3, amount: '₹1,200', paymentMethod: 'cash' },
-  { id: '2', date: '2023-06-14', items: 2, amount: '₹850', paymentMethod: 'upi' },
-  { id: '3', date: '2023-06-14', items: 5, amount: '₹3,400', paymentMethod: 'card' },
-  { id: '4', date: '2023-06-13', items: 1, amount: '₹450', paymentMethod: 'cash' },
-  { id: '5', date: '2023-06-13', items: 4, amount: '₹1,800', paymentMethod: 'upi' },
-  { id: '6', date: '2023-06-12', items: 2, amount: '₹900', paymentMethod: 'cash' },
-  { id: '7', date: '2023-06-12', items: 3, amount: '₹1,350', paymentMethod: 'card' },
-  { id: '8', date: '2023-06-11', items: 6, amount: '₹2,700', paymentMethod: 'upi' },
-];
 
-// Mock inventory data
-const mockInventoryData = [
-  { id: '1', name: 'Bhagavad Gita As It Is', category: 'books', language: 'english', price: '₹250', stock: 45, sold: 120 },
-  { id: '2', name: 'Bhagavad Gita As It Is', category: 'books', language: 'bengali', price: '₹220', stock: 32, sold: 85 },
-  { id: '3', name: 'Bhagavad Gita As It Is', category: 'books', language: 'hindi', price: '₹230', stock: 28, sold: 92 },
-  { id: '4', name: 'Sri Chaitanya Charitamrita', category: 'books', language: 'english', price: '₹450', stock: 15, sold: 45 },
-  { id: '5', name: 'Incense Sticks (Sandalwood)', category: 'incense', language: 'none', price: '₹50', stock: 120, sold: 350 },
-  { id: '6', name: 'Deity Dress (Small)', category: 'clothing', language: 'none', price: '₹350', stock: 8, sold: 12 },
-  { id: '7', name: 'Japa Mala', category: 'puja', language: 'none', price: '₹180', stock: 25, sold: 40 },
-  { id: '8', name: 'Krishna Murti (Brass, 8")', category: 'deities', language: 'none', price: '₹1200', stock: 5, sold: 8 },
-];
 
 export function ReportsPage() {
   const { t } = useTranslation();
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [activeTab, setActiveTab] = useState('sales');
 
-  // Calculate summary statistics
-  const totalSales = mockSalesData.reduce((sum, sale) => sum + parseInt(sale.amount.replace(/[₹,]/g, '')), 0);
-  const totalItems = mockSalesData.reduce((sum, sale) => sum + sale.items, 0);
-  const averageSale = totalSales / mockSalesData.length;
+  const {
+    salesData,
+    inventoryData,
+    summary,
+    loading,
+    error,
+    fetchTransactionsByDateRange,
+    fetchInventoryReport
+  } = useReports();
+
+  // Fetch initial data
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        // Default to last 30 days if no date range is selected
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        const formattedStartDate = format(thirtyDaysAgo, 'yyyy-MM-dd');
+        const formattedEndDate = format(new Date(), 'yyyy-MM-dd');
+
+        setStartDate(formattedStartDate);
+        setEndDate(formattedEndDate);
+
+        await fetchTransactionsByDateRange(formattedStartDate, formattedEndDate);
+        await fetchInventoryReport();
+      } catch (err) {
+        console.error('Error fetching initial data:', err);
+        toast.error(t('errors.fetchFailed'), {
+          description: t('reports.fetchError')
+        });
+      }
+    };
+
+    fetchInitialData();
+  }, []);
+
+  // Handle tab change
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+  };
+
+  // Handle filter button click
+  const handleFilterClick = async () => {
+    try {
+      if (activeTab === 'sales') {
+        await fetchTransactionsByDateRange(startDate, endDate);
+      } else {
+        await fetchInventoryReport();
+      }
+    } catch (err) {
+      console.error('Error applying filter:', err);
+      toast.error(t('errors.fetchFailed'), {
+        description: t('reports.filterError')
+      });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -57,7 +92,7 @@ export function ReportsPage() {
             <BarChart3Icon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">₹{totalSales.toLocaleString()}</div>
+            <div className="text-2xl font-bold">₹{summary.totalSales.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
               +20.1% from last month
             </p>
@@ -72,7 +107,7 @@ export function ReportsPage() {
             <PieChartIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalItems}</div>
+            <div className="text-2xl font-bold">{summary.totalItems}</div>
             <p className="text-xs text-muted-foreground">
               +15% from last month
             </p>
@@ -87,7 +122,7 @@ export function ReportsPage() {
             <LineChartIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">₹{averageSale.toFixed(2)}</div>
+            <div className="text-2xl font-bold">₹{summary.averageSale.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">
               +5% from last month
             </p>
@@ -121,18 +156,29 @@ export function ReportsPage() {
               />
             </div>
             <div className="flex items-end">
-              <Button>
-                <FilterIcon className="mr-2 h-4 w-4" />
+              <Button onClick={handleFilterClick} disabled={loading}>
+                {loading ? (
+                  <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <FilterIcon className="mr-2 h-4 w-4" />
+                )}
                 {t('reports.filter')}
               </Button>
             </div>
           </div>
 
-          <Tabs defaultValue="sales">
+          <Tabs defaultValue="sales" onValueChange={handleTabChange}>
             <TabsList className="mb-4">
               <TabsTrigger value="sales">{t('reports.salesReport')}</TabsTrigger>
               <TabsTrigger value="inventory">{t('reports.inventoryReport')}</TabsTrigger>
             </TabsList>
+
+            {error && (
+              <div className="my-4 rounded-md bg-destructive/15 p-3 text-destructive">
+                <p>{t('errors.fetchFailed')}</p>
+                <p className="text-sm">{error.message}</p>
+              </div>
+            )}
 
             <TabsContent value="sales" className="space-y-4">
               <div className="rounded-md border">
@@ -146,14 +192,28 @@ export function ReportsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {mockSalesData.map((sale) => (
-                      <TableRow key={sale.id}>
-                        <TableCell>{sale.date}</TableCell>
-                        <TableCell>{sale.items}</TableCell>
-                        <TableCell>{t(`pos.${sale.paymentMethod}`)}</TableCell>
-                        <TableCell className="text-right">{sale.amount}</TableCell>
+                    {loading ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="h-24 text-center">
+                          <Loader2Icon className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
+                        </TableCell>
                       </TableRow>
-                    ))}
+                    ) : salesData.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                          {t('reports.noTransactions')}
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      salesData.map((sale) => (
+                        <TableRow key={sale.id}>
+                          <TableCell>{format(new Date(sale.created_at), 'yyyy-MM-dd')}</TableCell>
+                          <TableCell>{sale.items_count}</TableCell>
+                          <TableCell>{t(`pos.${sale.payment_method}`)}</TableCell>
+                          <TableCell className="text-right">₹{sale.total.toLocaleString()}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </div>
@@ -172,20 +232,34 @@ export function ReportsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {mockInventoryData.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium">
-                          {item.name}
-                          {item.language && item.language !== 'none' && <span className="ml-1 text-xs text-muted-foreground">
-                            ({t(`inventory.languages.${item.language}`)})
-                          </span>}
+                    {loading ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="h-24 text-center">
+                          <Loader2Icon className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
                         </TableCell>
-                        <TableCell>{t(`inventory.categories.${item.category}`)}</TableCell>
-                        <TableCell>{item.stock}</TableCell>
-                        <TableCell>{item.sold}</TableCell>
-                        <TableCell className="text-right">{item.price}</TableCell>
                       </TableRow>
-                    ))}
+                    ) : inventoryData.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                          {t('reports.noInventory')}
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      inventoryData.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="font-medium">
+                            {item.name}
+                            {item.language && item.language !== 'none' && <span className="ml-1 text-xs text-muted-foreground">
+                              ({t(`inventory.languages.${item.language}`)})
+                            </span>}
+                          </TableCell>
+                          <TableCell>{t(`inventory.categories.${item.category}`)}</TableCell>
+                          <TableCell>{item.stock}</TableCell>
+                          <TableCell>{item.sold}</TableCell>
+                          <TableCell className="text-right">₹{item.price}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </div>
@@ -194,7 +268,11 @@ export function ReportsPage() {
         </CardContent>
         <CardFooter className="flex justify-between">
           <div className="text-sm text-muted-foreground">
-            {mockSalesData.length} {t('reports.transactions')}
+            {activeTab === 'sales' ? (
+              <>{summary.transactionCount} {t('reports.transactions')}</>
+            ) : (
+              <>{inventoryData.length} {t('inventory.items')}</>
+            )}
           </div>
           <div className="flex gap-2">
             <Button variant="outline">

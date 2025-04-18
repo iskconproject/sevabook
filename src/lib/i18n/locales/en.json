@@ -179,7 +179,14 @@
     "salesByCategory": "Sales by Category",
     "salesByPaymentMethod": "Sales by Payment Method",
     "dailySales": "Daily Sales",
-    "monthlySales": "Monthly Sales"
+    "monthlySales": "Monthly Sales",
+    "date": "Date",
+    "transactions": "Transactions",
+    "sold": "Sold",
+    "noTransactions": "No transactions found in this date range",
+    "noInventory": "No inventory items found",
+    "fetchError": "Failed to fetch report data",
+    "filterError": "Failed to apply filter"
   },
   "settings": {
     "title": "Settings",

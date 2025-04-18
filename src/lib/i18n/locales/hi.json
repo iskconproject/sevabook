@@ -179,7 +179,14 @@
     "salesByCategory": "श्रेणी के अनुसार बिक्री",
     "salesByPaymentMethod": "भुगतान विधि के अनुसार बिक्री",
     "dailySales": "दैनिक बिक्री",
-    "monthlySales": "मासिक बिक्री"
+    "monthlySales": "मासिक बिक्री",
+    "date": "तिथि",
+    "transactions": "लेनदेन",
+    "sold": "बिका हुआ",
+    "noTransactions": "इस तिथि सीमा में कोई लेनदेन नहीं मिला",
+    "noInventory": "कोई इन्वेंटरी आइटम नहीं मिला",
+    "fetchError": "रिपोर्ट डेटा प्राप्त करने में विफल",
+    "filterError": "फ़िल्टर लागू करने में विफल"
   },
   "settings": {
     "title": "सेटिंग्स",
