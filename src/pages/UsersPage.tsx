@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,19 +11,13 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
-import { PlusIcon, SearchIcon, EditIcon, TrashIcon, CheckCircleIcon, XCircleIcon, ClockIcon, AlertCircleIcon, InfoIcon } from 'lucide-react';
+import { PlusIcon, SearchIcon, EditIcon, TrashIcon, CheckCircleIcon, XCircleIcon, ClockIcon, AlertCircleIcon, LoaderIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserProfile, UserRole, SUPER_ADMIN_EMAIL } from '@/lib/types/user';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { db } from '@/lib/supabase/client';
 
-// Mock users data
-const mockUsers = [
-  { id: '1', name: 'Super Admin', email: SUPER_ADMIN_EMAIL, role: 'superAdmin', status: 'active', lastLogin: '2023-06-15 10:30 AM' },
-  { id: '2', name: 'Admin User', email: 'admin@example.com', role: 'admin', status: 'active', lastLogin: '2023-06-14 09:15 AM' },
-  { id: '3', name: 'Seller 1', email: 'seller1@example.com', role: 'seller', status: 'active', lastLogin: '2023-06-13 11:45 AM' },
-  { id: '4', name: 'Inventory Manager', email: 'manager@example.com', role: 'manager', status: 'active', lastLogin: '2023-06-10 02:20 PM' },
-  { id: '5', name: 'New Seller', email: 'newseller@example.com', role: 'seller', status: 'pending', lastLogin: 'Never' },
-];
+
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -36,20 +30,50 @@ type FormValues = z.infer<typeof formSchema>;
 
 export function UsersPage() {
   const { t } = useTranslation();
-  const { isSuperAdmin, userRole } = useAuth();
+  const { isSuperAdmin, userRole, userProfile } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<typeof mockUsers[0] | null>(null);
+  const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<typeof mockUsers[0] | null>(null);
+  const [userToDelete, setUserToDelete] = useState<UserProfile | null>(null);
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch users from the database
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await db.users.getUsers();
+        if (error) {
+          toast.error(t('errors.fetchFailed'), {
+            description: error.message || t('users.fetchError'),
+          });
+          return;
+        }
+        if (data) {
+          setUsers(data);
+        }
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        toast.error(t('errors.fetchFailed'), {
+          description: t('users.fetchError'),
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, [t]);
 
   // Filter users based on search query and user role
-  const filteredUsers = mockUsers.filter(user => {
+  const filteredUsers = users.filter(user => {
     // Only super admin can see other super admins
     if (user.role === 'superAdmin' && !isSuperAdmin) return false;
 
     // Admin can only see users with roles below them
-    if (userRole === 'admin' && user.role === 'admin' && user.email !== SUPER_ADMIN_EMAIL) return false;
+    if (userRole === 'admin' && user.role === 'admin' && user.email !== userProfile?.email) return false;
 
     // Filter by search query
     return user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -68,7 +92,7 @@ export function UsersPage() {
   });
 
   // Check if user can edit a specific user
-  const canEditUser = (user: typeof mockUsers[0]) => {
+  const canEditUser = (user: UserProfile) => {
     // Super admin can edit anyone except other super admins
     if (isSuperAdmin) {
       return user.email !== SUPER_ADMIN_EMAIL || user.email === SUPER_ADMIN_EMAIL;
@@ -83,7 +107,7 @@ export function UsersPage() {
   };
 
   // Check if user can delete a specific user
-  const canDeleteUser = (user: typeof mockUsers[0]) => {
+  const canDeleteUser = (user: UserProfile) => {
     // No one can delete the super admin
     if (user.email === SUPER_ADMIN_EMAIL) return false;
 
@@ -100,7 +124,7 @@ export function UsersPage() {
     return false;
   };
 
-  const onSubmit = (values: FormValues) => {
+  const onSubmit = async (values: FormValues) => {
     // Check if trying to create/edit a super admin
     if (values.role === 'superAdmin' && !isSuperAdmin) {
       toast.error(t('errors.unauthorized'), {
@@ -117,24 +141,57 @@ export function UsersPage() {
       return;
     }
 
-    if (editingUser) {
-      // Update existing user
-      toast.success(t('users.userUpdated'), {
-        description: `${values.name} (${values.email})`,
-      });
-    } else {
-      // Add new user
-      toast.success(t('users.userAdded'), {
-        description: `${values.name} (${values.email})`,
+    try {
+      if (editingUser) {
+        // Update existing user
+        const { error } = await db.users.updateUser(editingUser.id, {
+          name: values.name,
+          email: values.email,
+          role: values.role,
+          status: values.status
+        });
+
+        if (error) {
+          toast.error(t('errors.updateFailed'), {
+            description: error.message || t('users.updateError'),
+          });
+          return;
+        }
+
+        toast.success(t('users.userUpdated'), {
+          description: `${values.name} (${values.email})`,
+        });
+      } else {
+        // In a real implementation, you would need to create a user in auth system first
+        // This is just a placeholder for the UI
+        toast.error(t('users.addNotImplemented'), {
+          description: t('users.addUserThroughAuth'),
+        });
+        return;
+      }
+
+      // Refresh the users list
+      const { data, error } = await db.users.getUsers();
+      if (error) {
+        toast.error(t('errors.fetchFailed'), {
+          description: error.message || t('users.fetchError'),
+        });
+      } else if (data) {
+        setUsers(data);
+      }
+
+      setIsAddUserOpen(false);
+      setEditingUser(null);
+      form.reset();
+    } catch (error) {
+      console.error('Error updating user:', error);
+      toast.error(t('errors.updateFailed'), {
+        description: t('users.updateError'),
       });
     }
-
-    setIsAddUserOpen(false);
-    setEditingUser(null);
-    form.reset();
   };
 
-  const handleEditUser = (user: typeof mockUsers[0]) => {
+  const handleEditUser = (user: UserProfile) => {
     if (!canEditUser(user)) {
       toast.error(t('errors.unauthorized'), {
         description: t('users.cannotEditUser'),
@@ -152,7 +209,7 @@ export function UsersPage() {
     setIsAddUserOpen(true);
   };
 
-  const handleDeleteClick = (user: typeof mockUsers[0]) => {
+  const handleDeleteClick = (user: UserProfile) => {
     if (!canDeleteUser(user)) {
       toast.error(t('errors.unauthorized'), {
         description: t('users.cannotDeleteUser'),
@@ -164,16 +221,45 @@ export function UsersPage() {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!userToDelete) return;
 
-    // In a real app, this would call an API to delete the user
-    toast.success(t('users.userDeleted'), {
-      description: userToDelete.name,
-    });
+    try {
+      // In a real implementation, you would need to handle auth user deletion as well
+      // This is just updating the user status to inactive instead of deleting
+      const { error } = await db.users.updateUser(userToDelete.id, {
+        status: 'inactive'
+      });
 
-    setIsDeleteDialogOpen(false);
-    setUserToDelete(null);
+      if (error) {
+        toast.error(t('errors.deleteFailed'), {
+          description: error.message || t('users.deleteError'),
+        });
+        return;
+      }
+
+      toast.success(t('users.userDeactivated'), {
+        description: userToDelete.name,
+      });
+
+      // Refresh the users list
+      const { data, error: fetchError } = await db.users.getUsers();
+      if (fetchError) {
+        toast.error(t('errors.fetchFailed'), {
+          description: fetchError.message || t('users.fetchError'),
+        });
+      } else if (data) {
+        setUsers(data);
+      }
+
+      setIsDeleteDialogOpen(false);
+      setUserToDelete(null);
+    } catch (error) {
+      console.error('Error deactivating user:', error);
+      toast.error(t('errors.deleteFailed'), {
+        description: t('users.deleteError'),
+      });
+    }
   };
 
   const getStatusIcon = (status: string) => {
@@ -300,9 +386,9 @@ export function UsersPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="active">{t('users.status.active')}</SelectItem>
-                          <SelectItem value="inactive">{t('users.status.inactive')}</SelectItem>
-                          <SelectItem value="pending">{t('users.status.pending')}</SelectItem>
+                          <SelectItem value="active">{t('users.statusOptions.active')}</SelectItem>
+                          <SelectItem value="inactive">{t('users.statusOptions.inactive')}</SelectItem>
+                          <SelectItem value="pending">{t('users.statusOptions.pending')}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -353,7 +439,16 @@ export function UsersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.length === 0 ? (
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="h-24 text-center">
+                      <div className="flex justify-center items-center">
+                        <LoaderIcon className="h-6 w-6 animate-spin mr-2" />
+                        {t('common.loading')}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : filteredUsers.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="h-24 text-center">
                       {t('common.noResults')}
@@ -368,10 +463,30 @@ export function UsersPage() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           {getStatusIcon(user.status)}
-                          <span>{t(`users.status.${user.status}`)}</span>
+                          <span>{t(`users.statusOptions.${user.status}`)}</span>
                         </div>
                       </TableCell>
-                      <TableCell>{user.lastLogin}</TableCell>
+                      <TableCell>
+                        {user.lastLogin ? (
+                          <span className="text-muted-foreground">
+                            {new Date(user.lastLogin).toLocaleString()}
+                          </span>
+                        ) : (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center gap-1 text-amber-500 font-medium">
+                                  <ClockIcon className="h-3.5 w-3.5" />
+                                  <span>{t('users.never')}</span>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{t('users.neverLoggedIn')}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">
                         <TooltipProvider>
                           <Tooltip>

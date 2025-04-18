@@ -264,7 +264,15 @@
       "active": "Active",
       "inactive": "Inactive",
       "pending": "Pending"
-    }
+    },
+    "never": "Never",
+    "neverLoggedIn": "This user has never logged in to the system",
+    "userDeactivated": "User deactivated successfully",
+    "addNotImplemented": "Adding users not implemented",
+    "addUserThroughAuth": "Users must be added through the authentication system",
+    "updateError": "Error updating user",
+    "deleteError": "Error deactivating user",
+    "fetchError": "Error fetching users"
   },
   "barcode": {
     "title": "Barcode Management",
@@ -286,6 +294,9 @@
     "invalidNumber": "Invalid number",
     "networkError": "Network error. Please check your connection",
     "unknownError": "An unknown error occurred",
-    "unauthorized": "Unauthorized Action"
+    "unauthorized": "Unauthorized Action",
+    "updateFailed": "Update Failed",
+    "deleteFailed": "Delete Failed",
+    "fetchFailed": "Fetch Failed"
   }
 }
