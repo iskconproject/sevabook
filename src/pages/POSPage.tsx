@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { PlusIcon, MinusIcon, SearchIcon, ShoppingCartIcon, BarcodeIcon, CreditCardIcon, TrashIcon, Loader2Icon } from 'lucide-react';
 import { CheckoutDialog } from '@/components/pos/CheckoutDialog';
+import { BarcodeScanner } from '@/components/pos/BarcodeScanner';
 import { useInventory } from '@/hooks/useInventory';
 import { InventoryItem } from '@/lib/types/inventory';
 import { useLocation } from '@/contexts/LocationContext';
@@ -30,6 +31,7 @@ export function POSPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   // Filter inventory based on search query
   const filteredInventory = inventory.filter(item =>
@@ -37,6 +39,23 @@ export function POSPage() {
     item.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (item.language && item.language.toLowerCase().includes(searchQuery.toLowerCase()))
   );
+
+  // Handle barcode scan
+  const handleBarcodeScan = (barcodeData: string) => {
+    // Find the item with the matching barcode/id
+    const item = inventory.find(item => item.id === barcodeData);
+
+    if (item) {
+      addToCart(item);
+      toast.success(t('pos.itemScanned'), {
+        description: item.name,
+      });
+    } else {
+      toast.error(t('pos.itemNotFound'), {
+        description: t('pos.barcodeNotRecognized', { barcode: barcodeData }),
+      });
+    }
+  };
 
   // Add item to cart
   const addToCart = (item: InventoryItem) => {
@@ -119,9 +138,16 @@ export function POSPage() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
-                <Button variant="outline">
+                <Button variant="outline" onClick={() => setIsScannerOpen(true)}>
                   <BarcodeIcon className="h-4 w-4" />
                 </Button>
+
+                {/* Barcode Scanner */}
+                <BarcodeScanner
+                  isOpen={isScannerOpen}
+                  onClose={() => setIsScannerOpen(false)}
+                  onScan={handleBarcodeScan}
+                />
               </div>
             </CardContent>
           </Card>
