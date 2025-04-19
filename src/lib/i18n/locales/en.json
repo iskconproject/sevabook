@@ -56,7 +56,8 @@
     "totalSales": "Total Sales",
     "totalItems": "Total Items",
     "lowStock": "Low Stock Items",
-    "recentTransactions": "Recent Transactions"
+    "recentTransactions": "Recent Transactions",
+    "noRecentTransactions": "No recent transactions"
   },
   "inventory": {
     "title": "Inventory",
