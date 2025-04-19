@@ -8,6 +8,7 @@ import { SellerLayout } from './components/layout/SellerLayout';
 import { ManagerLayout } from './components/layout/ManagerLayout';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { RoleBasedRoute } from './components/layout/RoleBasedRoute';
+import { RedirectIfAuthenticated } from './components/layout/RedirectIfAuthenticated';
 import { LoginPage } from './pages/LoginPage';
 import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { DashboardPage } from './pages/DashboardPage';
@@ -30,7 +31,7 @@ function App() {
             <SidebarProvider>
               <Routes>
                 {/* Public routes */}
-                <Route path="login" element={<LoginPage />} />
+                <Route path="login" element={<RedirectIfAuthenticated><LoginPage /></RedirectIfAuthenticated>} />
                 <Route path="auth/callback" element={<AuthCallbackPage />} />
 
                 {/* Redirect based on role - This should be first to handle initial routing */}
