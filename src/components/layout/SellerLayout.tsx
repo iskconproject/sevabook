@@ -1,10 +1,10 @@
 import { Outlet } from 'react-router-dom';
 import { Header } from './Header';
 import { Toaster } from 'sonner';
-import { useAuth } from '@/contexts/AuthContext';
+// Auth context is not used directly in this component
 
 export function SellerLayout() {
-  const { user } = useAuth();
+  // User is not used in this component
 
   return (
     <div className="relative min-h-screen flex flex-col">

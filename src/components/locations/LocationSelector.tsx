@@ -1,4 +1,4 @@
-import React from 'react';
+// React is imported automatically with JSX
 import { useLocation } from '@/contexts/LocationContext';
 import { useTranslation } from 'react-i18next';
 import {

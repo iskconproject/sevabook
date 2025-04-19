@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useAuth } from '@/contexts/AuthContext';
+import { db } from '@/lib/supabase/client';
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -27,7 +27,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function SignupPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { signUp } = useAuth();
+  // Using direct Supabase client since signUp is not in AuthContext
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -44,7 +44,7 @@ export function SignupPage() {
   const onSubmit = async (values: FormValues) => {
     setLoading(true);
     try {
-      const { error } = await signUp(values.email, values.password);
+      const { error } = await db.auth.signUp(values.email, values.password);
       if (error) {
         toast.error(t('auth.signUpError'), {
           description: error.message,

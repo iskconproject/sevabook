@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/supabase/client';
 import { useLocation } from '@/contexts/LocationContext';
-import { Transaction } from '@/lib/types/transaction';
-import { InventoryItem } from '@/lib/types/inventory';
+// Transaction and InventoryItem types are not directly used in this file
 
 interface DashboardStats {
   totalSales: string;
@@ -39,29 +38,29 @@ export function useDashboard() {
       try {
         // Fetch transactions for the current location
         const { data: transactions, error: transactionsError } = await db.transactions.getTransactions(currentLocation.id);
-        
+
         if (transactionsError) {
           throw new Error(transactionsError.message);
         }
 
         // Fetch inventory for the current location
         const { data: inventory, error: inventoryError } = await db.inventory.getItems(currentLocation.id);
-        
+
         if (inventoryError) {
           throw new Error(inventoryError.message);
         }
 
         // Calculate total sales
         const totalSales = transactions ? transactions.reduce((sum, transaction) => sum + transaction.total, 0) : 0;
-        
+
         // Count low stock items
         const lowStockItems = inventory ? inventory.filter(item => item.stock < 10).length : 0;
-        
+
         // Get recent transactions (last 5)
-        const recentTransactions = transactions 
+        const recentTransactions = transactions
           ? transactions
-              .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-              .slice(0, 5)
+            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+            .slice(0, 5)
           : [];
 
         // Format recent transactions for display
@@ -69,7 +68,7 @@ export function useDashboard() {
           recentTransactions.map(async (transaction) => {
             const { data: items } = await db.transactions.getTransactionItems(transaction.id);
             const itemsCount = items ? items.reduce((sum, item) => sum + item.quantity, 0) : 0;
-            
+
             return {
               id: transaction.id.slice(0, 8),
               date: new Date(transaction.created_at).toLocaleDateString(),

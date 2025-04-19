@@ -1,14 +1,14 @@
 import { Outlet } from 'react-router-dom';
 import { Header } from './Header';
 import { Toaster } from 'sonner';
-import { useAuth } from '@/contexts/AuthContext';
+// Auth context is not used directly in this component
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 import { PackageIcon, BarcodeIcon } from 'lucide-react';
 
 export function ManagerLayout() {
-  const { user } = useAuth();
+  // User is not used in this component
   const { t } = useTranslation();
 
   return (

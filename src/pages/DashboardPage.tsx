@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PackageIcon, ShoppingCartIcon, AlertTriangleIcon, ReceiptIcon, BarcodeIcon, PlusIcon, Loader2Icon } from 'lucide-react';
+import { PackageIcon, ShoppingCartIcon, AlertTriangleIcon, ReceiptIcon, PlusIcon, Loader2Icon } from 'lucide-react';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useLocation } from '@/contexts/LocationContext';
 

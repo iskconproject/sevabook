@@ -116,7 +116,7 @@ export function BarcodePage() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
-                <Select value={barcodeType} onValueChange={setBarcodeType}>
+                <Select value={barcodeType} onValueChange={(value) => setBarcodeType(value as 'CODE128' | 'EAN13' | 'UPC')}>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Barcode Type" />
                   </SelectTrigger>

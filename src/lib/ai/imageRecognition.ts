@@ -55,7 +55,7 @@ const knownItems: RecognizedItem[] = [
 ];
 
 // Simulate AI image recognition
-export async function recognizeItemFromImage(imageData: string | File): Promise<RecognizedItem | null> {
+export async function recognizeItemFromImage(_imageData: string | File): Promise<RecognizedItem | null> {
   // In a real implementation, this would send the image to an AI service
   // For this mock, we'll randomly select an item from our known items
 
@@ -86,7 +86,7 @@ export async function captureImageFromCamera(): Promise<string | null> {
 }
 
 // Function to upload an image file
-export async function uploadImageFile(file: File): Promise<string | null> {
+export async function uploadImageFile(_file: File): Promise<string | null> {
   // In a real implementation, this would process the uploaded file
   // For this mock, we'll just return a dummy base64 string
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { db } from '@/lib/supabase/client';
-import { Transaction, TransactionItem } from '@/lib/types/transaction';
+import { Transaction } from '@/lib/types/transaction';
 import { InventoryItem } from '@/lib/types/inventory';
 
 interface SalesReportItem extends Transaction {

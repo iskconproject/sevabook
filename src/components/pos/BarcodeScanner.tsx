@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import BarcodeScannerComponent from 'react-qr-barcode-scanner';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { CameraIcon, FlashlightIcon, XIcon, SwitchCameraIcon } from 'lucide-react';
+import { FlashlightIcon, SwitchCameraIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface BarcodeScannerProps {
@@ -52,16 +52,16 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
   };
 
   // Handle scanner errors
-  const handleError = (error: Error) => {
+  const handleError = (error: string | DOMException) => {
     console.error('Barcode scanner error:', error);
-    if (error.name === 'NotAllowedError') {
+    if (typeof error === 'object' && error.name === 'NotAllowedError') {
       toast.error(t('pos.cameraPermissionDenied'), {
         description: t('pos.enableCameraPermission'),
       });
       handleClose();
     } else {
       toast.error(t('pos.scannerError'), {
-        description: error.message,
+        description: typeof error === 'string' ? error : error.message,
       });
     }
   };
@@ -73,15 +73,15 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
           <DialogTitle>{t('pos.scanBarcode')}</DialogTitle>
           <DialogDescription>{t('pos.scanBarcodeDescription')}</DialogDescription>
         </DialogHeader>
-        
+
         <div className="relative aspect-square w-full overflow-hidden rounded-md">
           {isOpen && (
             <BarcodeScannerComponent
               width="100%"
               height="100%"
-              onUpdate={(err, result) => {
-                if (result) {
-                  setData(result.text);
+              onUpdate={(_err, result) => {
+                if (result && typeof result === 'object' && 'getText' in result) {
+                  setData(result.getText());
                 }
               }}
               onError={handleError}
@@ -91,20 +91,20 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
             />
           )}
         </div>
-        
+
         <DialogFooter className="flex justify-between sm:justify-between">
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="icon" 
+            <Button
+              variant="outline"
+              size="icon"
               onClick={toggleCamera}
               title={t('pos.switchCamera')}
             >
               <SwitchCameraIcon className="h-4 w-4" />
             </Button>
-            <Button 
-              variant="outline" 
-              size="icon" 
+            <Button
+              variant="outline"
+              size="icon"
               onClick={toggleFlashlight}
               title={t('pos.toggleFlashlight')}
               className={torch ? 'bg-yellow-100' : ''}

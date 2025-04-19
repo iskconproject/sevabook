@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { CameraIcon, UploadIcon, CheckIcon, XIcon, LoaderIcon } from 'lucide-react';
+import { DialogFooter } from '@/components/ui/dialog';
+import { CameraIcon, CheckIcon, XIcon, LoaderIcon } from 'lucide-react';
 import { captureImageFromCamera, recognizeItemFromImage, RecognizedItem } from '@/lib/ai/imageRecognition';
 import { toast } from 'sonner';
 

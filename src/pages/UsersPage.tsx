@@ -13,7 +13,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { PlusIcon, SearchIcon, EditIcon, TrashIcon, CheckCircleIcon, XCircleIcon, ClockIcon, AlertCircleIcon, LoaderIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { UserProfile, UserRole, SUPER_ADMIN_EMAIL } from '@/lib/types/user';
+import { UserProfile, SUPER_ADMIN_EMAIL } from '@/lib/types/user';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { db } from '@/lib/supabase/client';
 

@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from '@/contexts/LocationContext';
 import { db } from '@/lib/supabase/client';
 import { useToast } from '@/hooks/useToast';
 import { InventoryItem } from '@/lib/types/inventory';
-import { Location } from '@/lib/types/location';
+// Location type is imported by useLocation context
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,7 +13,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  // DialogTrigger is not used
 } from '@/components/ui/dialog';
 import {
   Select,

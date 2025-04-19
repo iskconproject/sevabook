@@ -127,7 +127,7 @@ export const db = {
       }
 
       // Check if the item exists in the destination location
-      const { data: destItem, error: destError } = await supabase
+      const { data: destItem } = await supabase
         .from('inventory')
         .select('*')
         .eq('name', sourceItem.name)
