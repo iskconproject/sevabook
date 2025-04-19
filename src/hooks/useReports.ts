@@ -32,26 +32,27 @@ export function useReports() {
   const [error, setError] = useState<Error | null>(null);
 
   // Fetch transactions by date range
-  const fetchTransactionsByDateRange = async (startDate: string, endDate: string) => {
+  const fetchTransactionsByDateRange = async (startDate: string, endDate: string, locationId?: string) => {
     setLoading(true);
     setError(null);
-    
+
     try {
       // Format dates for database query
       const formattedStartDate = startDate ? `${startDate}T00:00:00.000Z` : undefined;
       const formattedEndDate = endDate ? `${endDate}T23:59:59.999Z` : undefined;
-      
-      // Get transactions in date range
-      const { data: transactions, error: transactionsError } = await db.transactions.getTransactionsByDateRange(
+
+      // Get transactions with items in a single query
+      const { data: transactionsWithItems, error: transactionsError } = await db.transactions.getTransactionsWithItems(
         formattedStartDate || '1970-01-01T00:00:00.000Z',
-        formattedEndDate || new Date().toISOString()
+        formattedEndDate || new Date().toISOString(),
+        locationId
       );
-      
+
       if (transactionsError) {
         throw new Error(transactionsError.message);
       }
-      
-      if (!transactions || transactions.length === 0) {
+
+      if (!transactionsWithItems || transactionsWithItems.length === 0) {
         setSalesData([]);
         setSummary({
           totalSales: 0,
@@ -62,28 +63,28 @@ export function useReports() {
         setLoading(false);
         return;
       }
-      
-      // Get transaction items for each transaction
+
+      // Process transactions and their items in a single pass
       const salesReportItems: SalesReportItem[] = [];
       let totalItems = 0;
-      
-      for (const transaction of transactions) {
-        const { data: items } = await db.transactions.getTransactionItems(transaction.id);
-        const itemsCount = items ? items.reduce((sum, item) => sum + item.quantity, 0) : 0;
-        
+
+      for (const transaction of transactionsWithItems) {
+        const itemsCount = transaction.transaction_items ?
+          transaction.transaction_items.reduce((sum, item) => sum + item.quantity, 0) : 0;
+
         totalItems += itemsCount;
-        
+
         salesReportItems.push({
           ...transaction,
           items_count: itemsCount
         });
       }
-      
+
       // Calculate summary statistics
       const totalSales = salesReportItems.reduce((sum, sale) => sum + sale.total, 0);
       const transactionCount = salesReportItems.length;
       const averageSale = transactionCount > 0 ? totalSales / transactionCount : 0;
-      
+
       // Update state
       setSalesData(salesReportItems);
       setSummary({
@@ -92,7 +93,7 @@ export function useReports() {
         averageSale,
         transactionCount
       });
-      
+
     } catch (err) {
       console.error('Error fetching transactions:', err);
       setError(err instanceof Error ? err : new Error('Failed to fetch transactions'));
@@ -100,72 +101,71 @@ export function useReports() {
       setLoading(false);
     }
   };
-  
+
   // Fetch inventory report data
-  const fetchInventoryReport = async () => {
+  const fetchInventoryReport = async (locationId?: string) => {
     setLoading(true);
     setError(null);
-    
+
     try {
-      // Get all inventory items
-      const { data: inventory, error: inventoryError } = await db.inventory.getItems();
-      
+      // Get all inventory items for the specified location
+      const { data: inventory, error: inventoryError } = await db.inventory.getItems(locationId);
+
       if (inventoryError) {
         throw new Error(inventoryError.message);
       }
-      
+
       if (!inventory || inventory.length === 0) {
         setInventoryData([]);
         setLoading(false);
         return;
       }
-      
-      // Get all transactions
-      const { data: transactions, error: transactionsError } = await db.transactions.getTransactions();
-      
+
+      // Get all transactions with items in a single query
+      const { data: transactionsWithItems, error: transactionsError } = await db.transactions.getTransactionsWithItems(
+        undefined, // No start date filter
+        undefined, // No end date filter
+        locationId // Filter by location if provided
+      );
+
       if (transactionsError) {
         throw new Error(transactionsError.message);
       }
-      
-      // Get all transaction items
-      const inventoryReportItems: InventoryReportItem[] = [];
+
+      // Process all transaction items in a single pass
       const soldQuantities: Record<string, number> = {};
       const revenues: Record<string, number> = {};
-      
-      if (transactions && transactions.length > 0) {
-        for (const transaction of transactions) {
-          if (transaction.status === 'completed') {
-            const { data: items } = await db.transactions.getTransactionItems(transaction.id);
-            
-            if (items) {
-              for (const item of items) {
-                if (!soldQuantities[item.inventory_id]) {
-                  soldQuantities[item.inventory_id] = 0;
-                }
-                if (!revenues[item.inventory_id]) {
-                  revenues[item.inventory_id] = 0;
-                }
-                
-                soldQuantities[item.inventory_id] += item.quantity;
-                revenues[item.inventory_id] += item.price * item.quantity;
+
+      if (transactionsWithItems && transactionsWithItems.length > 0) {
+        for (const transaction of transactionsWithItems) {
+          if (transaction.status === 'completed' && transaction.transaction_items) {
+            for (const item of transaction.transaction_items) {
+              const inventoryId = item.inventory_id;
+
+              if (!soldQuantities[inventoryId]) {
+                soldQuantities[inventoryId] = 0;
               }
+              if (!revenues[inventoryId]) {
+                revenues[inventoryId] = 0;
+              }
+
+              soldQuantities[inventoryId] += item.quantity;
+              revenues[inventoryId] += item.price * item.quantity;
             }
           }
         }
       }
-      
+
       // Create inventory report items
-      for (const item of inventory) {
-        inventoryReportItems.push({
-          ...item,
-          sold: soldQuantities[item.id] || 0,
-          revenue: revenues[item.id] || 0
-        });
-      }
-      
+      const inventoryReportItems: InventoryReportItem[] = inventory.map(item => ({
+        ...item,
+        sold: soldQuantities[item.id] || 0,
+        revenue: revenues[item.id] || 0
+      }));
+
       // Update state
       setInventoryData(inventoryReportItems);
-      
+
     } catch (err) {
       console.error('Error fetching inventory report:', err);
       setError(err instanceof Error ? err : new Error('Failed to fetch inventory report'));
@@ -173,7 +173,7 @@ export function useReports() {
       setLoading(false);
     }
   };
-  
+
   return {
     salesData,
     inventoryData,

@@ -268,6 +268,39 @@ export const db = {
         .from('transaction_items')
         .select('*, inventory(*)')
         .eq('transaction_id', transactionId) as { data: (TransactionItem & { inventory: InventoryItem })[] | null, error: any };
+    },
+
+    getTransactionsWithItems: async (startDate?: string, endDate?: string, locationId?: string) => {
+      // Build the query
+      let query = supabase
+        .from('transactions')
+        .select(`
+          *,
+          transaction_items!transaction_items_transaction_id_fkey (*, inventory(*))
+        `);
+
+      // Add date range filters if provided
+      if (startDate) {
+        query = query.gte('created_at', startDate);
+      }
+
+      if (endDate) {
+        query = query.lte('created_at', endDate);
+      }
+
+      // Add location filter if provided
+      if (locationId) {
+        query = query.eq('location_id', locationId);
+      }
+
+      return await query as {
+        data: (Transaction & {
+          transaction_items: (TransactionItem & {
+            inventory: InventoryItem
+          })[]
+        })[] | null,
+        error: any
+      };
     }
   },
 

@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DownloadIcon, FilterIcon, PrinterIcon, BarChart3Icon, PieChartIcon, LineChartIcon, Loader2Icon } from 'lucide-react';
 import { useReports } from '@/hooks/useReports';
+import { useLocation } from '@/contexts/LocationContext';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { downloadCSV, formatDateForFilename } from '@/lib/utils/exportUtils';
@@ -15,6 +16,7 @@ import { downloadCSV, formatDateForFilename } from '@/lib/utils/exportUtils';
 
 export function ReportsPage() {
   const { t } = useTranslation();
+  const { currentLocation } = useLocation();
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [activeTab, setActiveTab] = useState('sales');
@@ -43,8 +45,8 @@ export function ReportsPage() {
         setStartDate(formattedStartDate);
         setEndDate(formattedEndDate);
 
-        await fetchTransactionsByDateRange(formattedStartDate, formattedEndDate);
-        await fetchInventoryReport();
+        await fetchTransactionsByDateRange(formattedStartDate, formattedEndDate, currentLocation?.id);
+        await fetchInventoryReport(currentLocation?.id);
       } catch (err) {
         console.error('Error fetching initial data:', err);
         toast.error(t('errors.fetchFailed'), {
@@ -54,7 +56,7 @@ export function ReportsPage() {
     };
 
     fetchInitialData();
-  }, []);
+  }, [currentLocation]);
 
   // Handle tab change
   const handleTabChange = (value: string) => {
@@ -65,9 +67,9 @@ export function ReportsPage() {
   const handleFilterClick = async () => {
     try {
       if (activeTab === 'sales') {
-        await fetchTransactionsByDateRange(startDate, endDate);
+        await fetchTransactionsByDateRange(startDate, endDate, currentLocation?.id);
       } else {
-        await fetchInventoryReport();
+        await fetchInventoryReport(currentLocation?.id);
       }
     } catch (err) {
       console.error('Error applying filter:', err);
@@ -153,7 +155,9 @@ export function ReportsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">{t('reports.title')}</h1>
-        <p className="text-muted-foreground">{t('reports.title')} - {t('app.name')}</p>
+        <p className="text-muted-foreground">
+          {currentLocation ? `${t('reports.title')} - ${currentLocation.name}` : `${t('reports.title')} - ${t('app.name')}`}
+        </p>
       </div>
 
       <div className="flex flex-col gap-4 md:flex-row">
@@ -167,7 +171,7 @@ export function ReportsPage() {
           <CardContent>
             <div className="text-2xl font-bold">₹{summary.totalSales.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              +20.1% from last month
+              {currentLocation?.name || t('app.name')}
             </p>
           </CardContent>
         </Card>
@@ -182,7 +186,7 @@ export function ReportsPage() {
           <CardContent>
             <div className="text-2xl font-bold">{summary.totalItems}</div>
             <p className="text-xs text-muted-foreground">
-              +15% from last month
+              {currentLocation?.name || t('app.name')}
             </p>
           </CardContent>
         </Card>
@@ -197,7 +201,7 @@ export function ReportsPage() {
           <CardContent>
             <div className="text-2xl font-bold">₹{summary.averageSale.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">
-              +5% from last month
+              {currentLocation?.name || t('app.name')}
             </p>
           </CardContent>
         </Card>
