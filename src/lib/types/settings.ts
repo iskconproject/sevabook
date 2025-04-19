@@ -28,6 +28,7 @@ export interface AppSettings {
   printer_ip?: string;
   printer_port?: number;
   show_print_preview?: boolean;
+  location_id?: string;
   user_id?: string;
   created_at: string;
   updated_at: string;

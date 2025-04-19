@@ -13,14 +13,15 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { PlusIcon, SearchIcon, EditIcon, TrashIcon, FilterIcon, XIcon, Loader2Icon } from 'lucide-react';
 import { InventoryForm } from '@/components/inventory/InventoryForm';
+import { InventoryTransfer } from '@/components/inventory/InventoryTransfer';
 import { useInventory } from '@/hooks/useInventory';
 import { InventoryItem } from '@/lib/types/inventory';
-
-
+import { useLocation } from '@/contexts/LocationContext';
 
 export function InventoryPage() {
   const { t } = useTranslation();
-  const { inventory, loading, error, addInventoryItem, updateInventoryItem, deleteInventoryItem } = useInventory();
+  const { inventory, loading, error, addInventoryItem, updateInventoryItem, deleteInventoryItem, fetchInventory } = useInventory();
+  const { currentLocation } = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
@@ -66,7 +67,8 @@ export function InventoryPage() {
       language: values.language || 'none',
       price: parseFloat(values.price),
       stock: parseInt(values.stock),
-      description: values.description || ''
+      description: values.description || '',
+      location_id: values.location_id || currentLocation?.id
     };
 
     const result = await addInventoryItem(newItem);
@@ -93,7 +95,8 @@ export function InventoryPage() {
       language: values.language || 'none',
       price: parseFloat(values.price),
       stock: parseInt(values.stock),
-      description: values.description || ''
+      description: values.description || '',
+      location_id: values.location_id || editingItem.location_id || currentLocation?.id
     };
 
     const result = await updateInventoryItem(editingItem.id, updates);
@@ -181,29 +184,32 @@ export function InventoryPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{t('inventory.title')}</h1>
           <p className="text-muted-foreground">
-            {t('inventory.title')} - {loading ? '...' : filteredInventory.length} {t('dashboard.totalItems')}
+            {currentLocation?.name} - {loading ? '...' : filteredInventory.length} {t('dashboard.totalItems')}
           </p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <PlusIcon className="mr-2 h-4 w-4" />
-              {t('inventory.addItem')}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>{t('inventory.addItem')}</DialogTitle>
-              <DialogDescription>
-                {t('inventory.addItemDescription')}
-              </DialogDescription>
-            </DialogHeader>
-            <InventoryForm
-              onSubmit={handleAddItem}
-              onCancel={() => setIsAddDialogOpen(false)}
-            />
-          </DialogContent>
-        </Dialog>
+        <div className="flex gap-2">
+          <InventoryTransfer onTransferComplete={fetchInventory} />
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <PlusIcon className="mr-2 h-4 w-4" />
+                {t('inventory.addItem')}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px]">
+              <DialogHeader>
+                <DialogTitle>{t('inventory.addItem')}</DialogTitle>
+                <DialogDescription>
+                  {t('inventory.addItemDescription')}
+                </DialogDescription>
+              </DialogHeader>
+              <InventoryForm
+                onSubmit={handleAddItem}
+                onCancel={() => setIsAddDialogOpen(false)}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Edit Item Dialog */}
@@ -224,7 +230,8 @@ export function InventoryPage() {
                 language: editingItem.language,
                 price: editingItem.price.toString(),
                 stock: editingItem.stock,
-                description: editingItem.description
+                description: editingItem.description,
+                location_id: editingItem.location_id
               }}
               onSubmit={handleEditItem}
               onCancel={() => setEditingItem(null)}

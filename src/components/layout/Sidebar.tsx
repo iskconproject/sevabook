@@ -9,7 +9,8 @@ import {
   BarChartIcon,
   SettingsIcon,
   UsersIcon,
-  BarcodeIcon
+  BarcodeIcon,
+  MapPinIcon
 } from 'lucide-react';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -106,6 +107,12 @@ export function Sidebar() {
       icon: <BarChartIcon className="h-5 w-5" />,
       label: t('reports.title'),
       href: `${basePath}/reports`,
+      roles: ['superAdmin', 'admin']
+    },
+    {
+      icon: <MapPinIcon className="h-5 w-5" />,
+      label: t('locations.title'),
+      href: `${basePath}/locations`,
       roles: ['superAdmin', 'admin']
     },
     {

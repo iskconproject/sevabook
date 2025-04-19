@@ -7,7 +7,8 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSidebar } from '@/contexts/SidebarContext';
-import { MoonIcon, SunIcon, LanguagesIcon, LogOutIcon, UserIcon, SettingsIcon, MenuIcon, ChevronLeftIcon } from 'lucide-react';
+import { LocationSelector } from '../locations/LocationSelector';
+import { MoonIcon, SunIcon, LanguagesIcon, LogOutIcon, UserIcon, SettingsIcon, MenuIcon, ChevronLeftIcon, MapPinIcon } from 'lucide-react';
 
 export function Header() {
   const { t } = useTranslation();
@@ -42,6 +43,9 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-4">
+          {/* Location Selector */}
+          {user && <LocationSelector />}
+
           {/* Theme Toggle */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -120,6 +124,12 @@ export function Header() {
                       <Link to="/admin/users">
                         <UserIcon className="mr-2 h-4 w-4" />
                         <span>{t('users.title')}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/locations">
+                        <MapPinIcon className="mr-2 h-4 w-4" />
+                        <span>{t('locations.title')}</span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>

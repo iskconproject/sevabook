@@ -13,6 +13,7 @@ import { printThermalReceipt } from './ThermalReceipt';
 import { ThermalReceiptPreview } from '@/components/settings/ThermalReceiptPreview';
 import { db } from '@/lib/supabase/client';
 import { TransactionStatus } from '@/lib/types/transaction';
+import { useLocation } from '@/contexts/LocationContext';
 
 interface CheckoutDialogProps {
   cart: Array<{
@@ -31,6 +32,7 @@ interface CheckoutDialogProps {
 export function CheckoutDialog({ cart, subtotal, onComplete, onCancel, showFooter = true }: CheckoutDialogProps) {
   const { t } = useTranslation();
   const { getReceiptSettings } = useSettings();
+  const { currentLocation } = useLocation();
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'upi'>('cash');
   const [cashReceived, setCashReceived] = useState('');
   const [upiId, setUpiId] = useState('');
@@ -60,7 +62,9 @@ export function CheckoutDialog({ cart, subtotal, onComplete, onCancel, showFoote
           : { upi_id: upiId },
         customer_phone: customerPhone,
         status: 'completed' as TransactionStatus,
-        user_id: userId || ''
+        user_id: userId || '',
+        location_id: currentLocation?.id,
+        notes: currentLocation?.name !== 'Temple Store' ? `Sale at ${currentLocation?.name}` : undefined
       };
 
       // Create transaction items

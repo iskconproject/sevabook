@@ -11,6 +11,7 @@ import { PlusIcon, MinusIcon, SearchIcon, ShoppingCartIcon, BarcodeIcon, CreditC
 import { CheckoutDialog } from '@/components/pos/CheckoutDialog';
 import { useInventory } from '@/hooks/useInventory';
 import { InventoryItem } from '@/lib/types/inventory';
+import { useLocation } from '@/contexts/LocationContext';
 
 
 
@@ -25,6 +26,7 @@ interface CartItem {
 export function POSPage() {
   const { t } = useTranslation();
   const { inventory, loading, error } = useInventory();
+  const { currentLocation } = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -95,7 +97,7 @@ export function POSPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">{t('pos.title')}</h1>
-        <p className="text-muted-foreground">{t('pos.newSale')}</p>
+        <p className="text-muted-foreground">{currentLocation?.name} - {t('pos.newSale')}</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

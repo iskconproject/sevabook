@@ -3,6 +3,7 @@ import { InventoryItem } from '../types/inventory';
 import { Transaction, TransactionItem, TransactionWithItems } from '../types/transaction';
 import { BarcodeSettings, AppSettings } from '../types/settings';
 import { UserProfile } from '../types/user';
+import { Location } from '../types/location';
 
 // These values should be stored in environment variables in a production environment
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
@@ -45,8 +46,12 @@ export const db = {
 
   // Inventory operations
   inventory: {
-    getItems: async () => {
-      return await supabase.from('inventory').select('*') as { data: InventoryItem[] | null, error: any };
+    getItems: async (locationId?: string) => {
+      const query = supabase.from('inventory').select('*');
+      if (locationId) {
+        return await query.eq('location_id', locationId) as { data: InventoryItem[] | null, error: any };
+      }
+      return await query as { data: InventoryItem[] | null, error: any };
     },
     getItemById: async (id: string) => {
       return await supabase.from('inventory').select('*').eq('id', id).single() as { data: InventoryItem | null, error: any };
@@ -60,36 +65,143 @@ export const db = {
     deleteItem: async (id: string) => {
       return await supabase.from('inventory').delete().eq('id', id);
     },
-    searchItems: async (query: string) => {
-      return await supabase
+    searchItems: async (query: string, locationId?: string) => {
+      const dbQuery = supabase
         .from('inventory')
         .select('*')
-        .or(`name.ilike.%${query}%, description.ilike.%${query}%`) as { data: InventoryItem[] | null, error: any };
+        .or(`name.ilike.%${query}%, description.ilike.%${query}%`);
+
+      if (locationId) {
+        return await dbQuery.eq('location_id', locationId) as { data: InventoryItem[] | null, error: any };
+      }
+      return await dbQuery as { data: InventoryItem[] | null, error: any };
     },
-    getItemsByCategory: async (category: string) => {
-      return await supabase
+    getItemsByCategory: async (category: string, locationId?: string) => {
+      const query = supabase
         .from('inventory')
         .select('*')
-        .eq('category', category) as { data: InventoryItem[] | null, error: any };
+        .eq('category', category);
+
+      if (locationId) {
+        return await query.eq('location_id', locationId) as { data: InventoryItem[] | null, error: any };
+      }
+      return await query as { data: InventoryItem[] | null, error: any };
     },
-    getItemsByLanguage: async (language: string) => {
-      return await supabase
+    getItemsByLanguage: async (language: string, locationId?: string) => {
+      const query = supabase
         .from('inventory')
         .select('*')
-        .eq('language', language) as { data: InventoryItem[] | null, error: any };
+        .eq('language', language);
+
+      if (locationId) {
+        return await query.eq('location_id', locationId) as { data: InventoryItem[] | null, error: any };
+      }
+      return await query as { data: InventoryItem[] | null, error: any };
     },
-    getLowStockItems: async (threshold: number = 10) => {
-      return await supabase
+    getLowStockItems: async (threshold: number = 10, locationId?: string) => {
+      const query = supabase
         .from('inventory')
         .select('*')
-        .lt('stock', threshold) as { data: InventoryItem[] | null, error: any };
+        .lt('stock', threshold);
+
+      if (locationId) {
+        return await query.eq('location_id', locationId) as { data: InventoryItem[] | null, error: any };
+      }
+      return await query as { data: InventoryItem[] | null, error: any };
+    },
+    transferItems: async (itemId: string, fromLocationId: string, toLocationId: string, quantity: number) => {
+      // Get the item from the source location
+      const { data: sourceItem, error: sourceError } = await supabase
+        .from('inventory')
+        .select('*')
+        .eq('id', itemId)
+        .eq('location_id', fromLocationId)
+        .single() as { data: InventoryItem | null, error: any };
+
+      if (sourceError || !sourceItem) {
+        return { error: sourceError || new Error('Source item not found') };
+      }
+
+      if (sourceItem.stock < quantity) {
+        return { error: new Error('Not enough stock in source location') };
+      }
+
+      // Check if the item exists in the destination location
+      const { data: destItem, error: destError } = await supabase
+        .from('inventory')
+        .select('*')
+        .eq('name', sourceItem.name)
+        .eq('category', sourceItem.category)
+        .eq('language', sourceItem.language)
+        .eq('location_id', toLocationId)
+        .single() as { data: InventoryItem | null, error: any };
+
+      // Start a transaction
+      // Decrease stock in source location
+      const { error: updateSourceError } = await supabase
+        .from('inventory')
+        .update({ stock: sourceItem.stock - quantity })
+        .eq('id', sourceItem.id);
+
+      if (updateSourceError) {
+        return { error: updateSourceError };
+      }
+
+      if (destItem) {
+        // If item exists in destination, increase stock
+        const { error: updateDestError } = await supabase
+          .from('inventory')
+          .update({ stock: destItem.stock + quantity })
+          .eq('id', destItem.id);
+
+        if (updateDestError) {
+          // Rollback source update
+          await supabase
+            .from('inventory')
+            .update({ stock: sourceItem.stock })
+            .eq('id', sourceItem.id);
+
+          return { error: updateDestError };
+        }
+      } else {
+        // If item doesn't exist in destination, create it
+        const newItem = {
+          name: sourceItem.name,
+          category: sourceItem.category,
+          language: sourceItem.language,
+          price: sourceItem.price,
+          stock: quantity,
+          description: sourceItem.description,
+          location_id: toLocationId
+        };
+
+        const { error: insertError } = await supabase
+          .from('inventory')
+          .insert(newItem);
+
+        if (insertError) {
+          // Rollback source update
+          await supabase
+            .from('inventory')
+            .update({ stock: sourceItem.stock })
+            .eq('id', sourceItem.id);
+
+          return { error: insertError };
+        }
+      }
+
+      return { success: true };
     }
   },
 
   // Transaction operations
   transactions: {
-    getTransactions: async () => {
-      return await supabase.from('transactions').select('*') as { data: Transaction[] | null, error: any };
+    getTransactions: async (locationId?: string) => {
+      const query = supabase.from('transactions').select('*');
+      if (locationId) {
+        return await query.eq('location_id', locationId) as { data: Transaction[] | null, error: any };
+      }
+      return await query as { data: Transaction[] | null, error: any };
     },
     getTransactionById: async (id: string) => {
       return await supabase
@@ -128,18 +240,28 @@ export const db = {
 
       return { data: transactionData, error: null };
     },
-    getTransactionsByDateRange: async (startDate: string, endDate: string) => {
-      return await supabase
+    getTransactionsByDateRange: async (startDate: string, endDate: string, locationId?: string) => {
+      const query = supabase
         .from('transactions')
         .select('*')
         .gte('created_at', startDate)
-        .lte('created_at', endDate) as { data: Transaction[] | null, error: any };
+        .lte('created_at', endDate);
+
+      if (locationId) {
+        return await query.eq('location_id', locationId) as { data: Transaction[] | null, error: any };
+      }
+      return await query as { data: Transaction[] | null, error: any };
     },
-    getTransactionsByUser: async (userId: string) => {
-      return await supabase
+    getTransactionsByUser: async (userId: string, locationId?: string) => {
+      const query = supabase
         .from('transactions')
         .select('*')
-        .eq('user_id', userId) as { data: Transaction[] | null, error: any };
+        .eq('user_id', userId);
+
+      if (locationId) {
+        return await query.eq('location_id', locationId) as { data: Transaction[] | null, error: any };
+      }
+      return await query as { data: Transaction[] | null, error: any };
     },
     getTransactionItems: async (transactionId: string) => {
       return await supabase
@@ -188,14 +310,40 @@ export const db = {
 
   // App settings operations
   appSettings: {
-    getSettings: async () => {
-      return await supabase.from('app_settings').select('*').limit(1).single() as { data: AppSettings | null, error: any };
+    getSettings: async (locationId?: string) => {
+      const query = supabase.from('app_settings').select('*');
+      if (locationId) {
+        return await query.eq('location_id', locationId).limit(1).single() as { data: AppSettings | null, error: any };
+      }
+      return await query.limit(1).single() as { data: AppSettings | null, error: any };
     },
     updateSettings: async (id: string, updates: Partial<AppSettings>) => {
       return await supabase.from('app_settings').update(updates).eq('id', id) as { data: AppSettings[] | null, error: any };
     },
     createSettings: async (settings: Omit<AppSettings, 'id' | 'created_at' | 'updated_at'>) => {
       return await supabase.from('app_settings').insert(settings) as { data: AppSettings[] | null, error: any };
+    }
+  },
+
+  // Location operations
+  locations: {
+    getLocations: async () => {
+      return await supabase.from('locations').select('*') as { data: Location[] | null, error: any };
+    },
+    getLocationById: async (id: string) => {
+      return await supabase.from('locations').select('*').eq('id', id).single() as { data: Location | null, error: any };
+    },
+    getDefaultLocation: async () => {
+      return await supabase.from('locations').select('*').eq('is_default', true).single() as { data: Location | null, error: any };
+    },
+    addLocation: async (location: Omit<Location, 'id' | 'created_at' | 'updated_at'>) => {
+      return await supabase.from('locations').insert(location) as { data: Location[] | null, error: any };
+    },
+    updateLocation: async (id: string, updates: Partial<Location>) => {
+      return await supabase.from('locations').update(updates).eq('id', id) as { data: Location[] | null, error: any };
+    },
+    deleteLocation: async (id: string) => {
+      return await supabase.from('locations').delete().eq('id', id);
     }
   }
 };

@@ -3,6 +3,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SidebarProvider } from './contexts/SidebarContext';
+import { LocationProvider } from './contexts/LocationContext';
 import { Layout } from './components/layout/Layout';
 import { SellerLayout } from './components/layout/SellerLayout';
 import { ManagerLayout } from './components/layout/ManagerLayout';
@@ -18,6 +19,7 @@ import { BarcodePage } from './pages/BarcodePage';
 import { ReportsPage } from './pages/ReportsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { UsersPage } from './pages/UsersPage';
+import { LocationsPage } from './components/locations/LocationsPage';
 
 // Import i18n configuration
 import './lib/i18n/i18n';
@@ -28,59 +30,62 @@ function App() {
       <ThemeProvider>
         <LanguageProvider>
           <AuthProvider>
-            <SidebarProvider>
-              <Routes>
-                {/* Public routes */}
-                <Route path="login" element={<RedirectIfAuthenticated><LoginPage /></RedirectIfAuthenticated>} />
-                <Route path="auth/callback" element={<AuthCallbackPage />} />
+            <LocationProvider>
+              <SidebarProvider>
+                <Routes>
+                  {/* Public routes */}
+                  <Route path="login" element={<RedirectIfAuthenticated><LoginPage /></RedirectIfAuthenticated>} />
+                  <Route path="auth/callback" element={<AuthCallbackPage />} />
 
-                {/* Redirect based on role - This should be first to handle initial routing */}
-                <Route path="/" element={
-                  <ProtectedRoute>
-                    <RoleRedirect />
-                  </ProtectedRoute>
-                } />
+                  {/* Redirect based on role - This should be first to handle initial routing */}
+                  <Route path="/" element={
+                    <ProtectedRoute>
+                      <RoleRedirect />
+                    </ProtectedRoute>
+                  } />
 
-                {/* Admin and Super Admin Layout */}
-                <Route path="/admin" element={
-                  <RoleBasedRoute allowedRoles={['superAdmin', 'admin']} redirectTo="/">
-                    <Layout />
-                  </RoleBasedRoute>
-                }>
-                  <Route index element={<DashboardPage />} />
-                  <Route path="inventory" element={<InventoryPage />} />
-                  <Route path="pos" element={<POSPage />} />
-                  <Route path="barcode" element={<BarcodePage />} />
-                  <Route path="reports" element={<ReportsPage />} />
-                  <Route path="settings" element={<SettingsPage />} />
-                  <Route path="users" element={<UsersPage />} />
-                </Route>
+                  {/* Admin and Super Admin Layout */}
+                  <Route path="/admin" element={
+                    <RoleBasedRoute allowedRoles={['superAdmin', 'admin']} redirectTo="/">
+                      <Layout />
+                    </RoleBasedRoute>
+                  }>
+                    <Route index element={<DashboardPage />} />
+                    <Route path="inventory" element={<InventoryPage />} />
+                    <Route path="pos" element={<POSPage />} />
+                    <Route path="barcode" element={<BarcodePage />} />
+                    <Route path="reports" element={<ReportsPage />} />
+                    <Route path="settings" element={<SettingsPage />} />
+                    <Route path="users" element={<UsersPage />} />
+                    <Route path="locations" element={<LocationsPage />} />
+                  </Route>
 
-                {/* Seller Layout - POS Only */}
-                <Route path="/seller" element={
-                  <RoleBasedRoute allowedRoles={['seller']} redirectTo="/">
-                    <SellerLayout />
-                  </RoleBasedRoute>
-                }>
-                  <Route index element={<Navigate to="/seller/pos" replace />} />
-                  <Route path="pos" element={<POSPage />} />
-                </Route>
+                  {/* Seller Layout - POS Only */}
+                  <Route path="/seller" element={
+                    <RoleBasedRoute allowedRoles={['seller']} redirectTo="/">
+                      <SellerLayout />
+                    </RoleBasedRoute>
+                  }>
+                    <Route index element={<Navigate to="/seller/pos" replace />} />
+                    <Route path="pos" element={<POSPage />} />
+                  </Route>
 
-                {/* Manager Layout - Inventory and Barcode Only */}
-                <Route path="/manager" element={
-                  <RoleBasedRoute allowedRoles={['manager']} redirectTo="/">
-                    <ManagerLayout />
-                  </RoleBasedRoute>
-                }>
-                  <Route index element={<Navigate to="/manager/inventory" replace />} />
-                  <Route path="inventory" element={<InventoryPage />} />
-                  <Route path="barcode" element={<BarcodePage />} />
-                </Route>
+                  {/* Manager Layout - Inventory and Barcode Only */}
+                  <Route path="/manager" element={
+                    <RoleBasedRoute allowedRoles={['manager']} redirectTo="/">
+                      <ManagerLayout />
+                    </RoleBasedRoute>
+                  }>
+                    <Route index element={<Navigate to="/manager/inventory" replace />} />
+                    <Route path="inventory" element={<InventoryPage />} />
+                    <Route path="barcode" element={<BarcodePage />} />
+                  </Route>
 
-                {/* Fallback route */}
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </SidebarProvider>
+                  {/* Fallback route */}
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </SidebarProvider>
+            </LocationProvider>
           </AuthProvider>
         </LanguageProvider>
       </ThemeProvider>

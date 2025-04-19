@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { CameraIcon, SaveIcon } from 'lucide-react';
 import { AIImageRecognition } from './AIImageRecognition';
 import { RecognizedItem } from '@/lib/ai/imageRecognition';
+import { useLocation } from '@/contexts/LocationContext';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -22,6 +23,7 @@ const formSchema = z.object({
   price: z.string().refine((val) => !isNaN(Number(val)), { message: "Price must be a number." }),
   stock: z.string().refine((val) => !isNaN(Number(val)), { message: "Stock must be a number." }),
   description: z.string().optional(),
+  location_id: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -35,6 +37,7 @@ interface InventoryFormProps {
     price: string;
     stock: number;
     description?: string;
+    location_id?: string;
   };
   onSubmit: (values: FormValues) => void;
   onCancel: () => void;
@@ -42,6 +45,7 @@ interface InventoryFormProps {
 
 export function InventoryForm({ initialData, onSubmit, onCancel }: InventoryFormProps) {
   const { t } = useTranslation();
+  const { currentLocation, locations } = useLocation();
   const [isAIDialogOpen, setIsAIDialogOpen] = useState(false);
 
   const form = useForm<FormValues>({
@@ -53,6 +57,7 @@ export function InventoryForm({ initialData, onSubmit, onCancel }: InventoryForm
       price: initialData?.price?.replace('₹', '') || '',
       stock: initialData?.stock?.toString() || '0',
       description: initialData?.description || '',
+      location_id: initialData?.location_id || currentLocation?.id || '',
     },
   });
 
@@ -208,6 +213,34 @@ export function InventoryForm({ initialData, onSubmit, onCancel }: InventoryForm
               )}
             />
           </div>
+
+          <FormField
+            control={form.control}
+            name="location_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('inventory.location')}</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t('inventory.selectLocation')} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {locations.map(location => (
+                      <SelectItem key={location.id} value={location.id}>
+                        {location.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <FormField
             control={form.control}

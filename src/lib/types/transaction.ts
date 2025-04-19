@@ -8,6 +8,8 @@ export interface Transaction {
   payment_details: PaymentDetails;
   customer_phone?: string;
   status: TransactionStatus;
+  location_id?: string;
+  notes?: string;
   created_at: string;
   updated_at: string;
 }

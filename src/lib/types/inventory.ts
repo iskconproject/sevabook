@@ -6,6 +6,7 @@ export interface InventoryItem {
   price: number;
   stock: number;
   description?: string;
+  location_id?: string;
   created_at: string;
   updated_at: string;
 }
@@ -21,4 +22,5 @@ export interface InventoryFormData {
   price: string;
   stock: string;
   description?: string;
+  location_id?: string;
 }
