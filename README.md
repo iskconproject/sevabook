@@ -49,11 +49,14 @@ SevaBook is a beautiful, intuitive inventory and point-of-sale system designed s
    pnpm install
    ```
 
-3. Create a `.env` file in the root directory with your Supabase credentials:
+3. Create a `.env` file in the root directory with your credentials:
    ```
    VITE_SUPABASE_URL=your-supabase-url
    VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+   VITE_GEMINI_API_KEY=your-gemini-api-key
    ```
+
+   You can get a Gemini API key from [Google AI Studio](https://makersuite.google.com/app/apikey).
 
 4. Start the development server:
    ```bash

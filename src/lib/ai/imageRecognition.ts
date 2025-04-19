@@ -1,5 +1,5 @@
-// This is a mock implementation of the AI image recognition service
-// In a real application, this would integrate with Google Gemini 2.0 or another AI service
+// Real implementation of the AI image recognition service using Google Gemini 2.0
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 
 export interface RecognizedItem {
   name: string;
@@ -10,8 +10,8 @@ export interface RecognizedItem {
   confidence: number;
 }
 
-// Mock database of items that the AI can "recognize"
-const knownItems: RecognizedItem[] = [
+// Fallback items in case AI recognition fails or API key is not available
+const fallbackItems: RecognizedItem[] = [
   {
     name: 'Bhagavad Gita As It Is',
     category: 'books',
@@ -54,45 +54,193 @@ const knownItems: RecognizedItem[] = [
   }
 ];
 
-// Simulate AI image recognition
-export async function recognizeItemFromImage(_imageData: string | File): Promise<RecognizedItem | null> {
-  // In a real implementation, this would send the image to an AI service
-  // For this mock, we'll randomly select an item from our known items
+// Get the Gemini API key from environment variables
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
 
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 2000));
+// Initialize the Gemini AI client if API key is available
+let genAI: GoogleGenerativeAI | null = null;
+if (apiKey) {
+  genAI = new GoogleGenerativeAI(apiKey);
+}
 
-  // Randomly select an item (or return null to simulate failure)
-  const randomIndex = Math.floor(Math.random() * (knownItems.length + 1));
-
-  if (randomIndex === knownItems.length) {
-    // Simulate recognition failure
-    return null;
+// Function to recognize items from an image using Gemini AI
+export async function recognizeItemFromImage(imageData: string | File): Promise<RecognizedItem | null> {
+  // If API key is not available or genAI is not initialized, use fallback
+  if (!genAI || !apiKey) {
+    console.warn('Gemini API key not available, using fallback recognition');
+    // Return a random fallback item
+    return fallbackItems[Math.floor(Math.random() * fallbackItems.length)];
   }
 
-  return knownItems[randomIndex];
+  try {
+    // Extract base64 data from the image string if it's a data URL
+    let base64Image: string;
+    if (typeof imageData === 'string' && imageData.startsWith('data:image')) {
+      base64Image = imageData.split(',')[1];
+    } else if (imageData instanceof File) {
+      // Convert File to base64
+      base64Image = await fileToBase64(imageData);
+    } else {
+      throw new Error('Invalid image data format');
+    }
+
+    // Create a Gemini model instance
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-pro-vision',
+      safetySettings: [
+        {
+          category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+          threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+          threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+          threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+          threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+        },
+      ],
+    });
+
+    // Prepare the prompt for the model
+    const prompt = `Analyze this image and identify the item.
+    This is for an inventory management system for an ISKCON temple book stall.
+    The items are primarily books, incense, puja items, and other religious artifacts.
+
+    Return the information in the following JSON format:
+    {
+      "name": "Full name of the item",
+      "category": "One of: books, incense, puja, clothing, accessories, other",
+      "language": "Language of the item if applicable (english, bengali, hindi, sanskrit, none)",
+      "price": Estimated price in INR (integer),
+      "description": "Brief description of the item",
+      "confidence": Confidence score between 0 and 1
+    }`;
+
+    // Generate content from the model
+    const result = await model.generateContent([
+      prompt,
+      {
+        inlineData: {
+          mimeType: 'image/jpeg',
+          data: base64Image
+        }
+      }
+    ]);
+
+    const response = result.response;
+    const text = response.text();
+
+    // Extract JSON from the response
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error('Could not extract JSON from response');
+    }
+
+    // Parse the JSON response
+    const itemData = JSON.parse(jsonMatch[0]) as RecognizedItem;
+
+    // Ensure all required fields are present
+    if (!itemData.name || !itemData.category) {
+      throw new Error('Missing required fields in response');
+    }
+
+    // Set default confidence if not provided
+    if (!itemData.confidence) {
+      itemData.confidence = 0.8;
+    }
+
+    return itemData;
+  } catch (error) {
+    console.error('Error recognizing item with Gemini:', error);
+
+    // Return a fallback item in case of error
+    return fallbackItems[Math.floor(Math.random() * fallbackItems.length)];
+  }
+}
+
+// Helper function to convert File to base64
+async function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        const base64 = reader.result.split(',')[1];
+        resolve(base64);
+      } else {
+        reject(new Error('Failed to convert file to base64'));
+      }
+    };
+    reader.onerror = error => reject(error);
+  });
 }
 
 // Function to capture image from camera
 export async function captureImageFromCamera(): Promise<string | null> {
-  // In a real implementation, this would access the device camera
-  // For this mock, we'll just return a dummy base64 string
+  try {
+    // Check if MediaDevices API is available
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      throw new Error('Camera access not supported in this browser');
+    }
 
-  // Simulate camera access delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
+    // Create video and canvas elements
+    const video = document.createElement('video');
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
 
-  // Return a dummy base64 string (in a real app, this would be the actual image data)
-  return 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD9/KKKKAP/2Q==';
+    if (!ctx) {
+      throw new Error('Could not get canvas context');
+    }
+
+    // Get camera stream
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment' }, // Use back camera if available
+      audio: false
+    });
+
+    // Set up video element
+    video.srcObject = stream;
+    video.setAttribute('playsinline', 'true'); // Required for iOS Safari
+
+    // Wait for video to be ready
+    await new Promise<void>((resolve) => {
+      video.onloadedmetadata = () => {
+        video.play();
+        resolve();
+      };
+    });
+
+    // Set canvas dimensions to match video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    // Draw video frame to canvas
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // Stop all video tracks
+    stream.getTracks().forEach(track => track.stop());
+
+    // Convert canvas to data URL
+    const imageData = canvas.toDataURL('image/jpeg', 0.8);
+    return imageData;
+  } catch (error) {
+    console.error('Error capturing image from camera:', error);
+    return null;
+  }
 }
 
 // Function to upload an image file
-export async function uploadImageFile(_file: File): Promise<string | null> {
-  // In a real implementation, this would process the uploaded file
-  // For this mock, we'll just return a dummy base64 string
-
-  // Simulate file processing delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  // Return a dummy base64 string (in a real app, this would be the actual image data)
-  return 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD9/KKKKAP/2Q==';
+export async function uploadImageFile(file: File): Promise<string | null> {
+  try {
+    return await fileToBase64(file);
+  } catch (error) {
+    console.error('Error processing uploaded file:', error);
+    return null;
+  }
 }

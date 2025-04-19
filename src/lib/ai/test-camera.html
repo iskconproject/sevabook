@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Camera Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    button {
+      padding: 10px 15px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 10px 0;
+    }
+    video, img {
+      width: 100%;
+      max-width: 400px;
+      border: 1px solid #ddd;
+      margin: 10px 0;
+    }
+    #result {
+      white-space: pre-wrap;
+      background-color: #f5f5f5;
+      padding: 10px;
+      border-radius: 4px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Camera Access Test</h1>
+  <p>This page tests camera access using the MediaDevices API.</p>
+  
+  <div>
+    <button id="startCamera">Start Camera</button>
+    <button id="captureImage">Capture Image</button>
+  </div>
+  
+  <div>
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <div>
+      <h3>Captured Image:</h3>
+      <img id="capturedImage" src="" alt="No image captured yet">
+    </div>
+  </div>
+  
+  <div id="result"></div>
+  
+  <script>
+    const startCameraButton = document.getElementById('startCamera');
+    const captureImageButton = document.getElementById('captureImage');
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const capturedImage = document.getElementById('capturedImage');
+    const result = document.getElementById('result');
+    
+    let stream = null;
+    
+    // Start camera
+    startCameraButton.addEventListener('click', async () => {
+      try {
+        // Stop any existing stream
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+        }
+        
+        // Get camera stream
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' },
+          audio: false
+        });
+        
+        // Set video source
+        video.srcObject = stream;
+        
+        result.textContent = 'Camera started successfully!';
+      } catch (error) {
+        result.textContent = `Error starting camera: ${error.message}`;
+        console.error('Error starting camera:', error);
+      }
+    });
+    
+    // Capture image
+    captureImageButton.addEventListener('click', () => {
+      if (!stream) {
+        result.textContent = 'Please start the camera first.';
+        return;
+      }
+      
+      try {
+        // Set canvas dimensions to match video
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        // Draw video frame to canvas
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Convert canvas to data URL
+        const imageData = canvas.toDataURL('image/jpeg', 0.8);
+        
+        // Display captured image
+        capturedImage.src = imageData;
+        
+        result.textContent = 'Image captured successfully!\nImage data URL (truncated):\n' + 
+          imageData.substring(0, 100) + '...';
+      } catch (error) {
+        result.textContent = `Error capturing image: ${error.message}`;
+        console.error('Error capturing image:', error);
+      }
+    });
+  </script>
+</body>
+</html>
